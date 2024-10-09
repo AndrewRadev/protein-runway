@@ -1,6 +1,6 @@
 ## Setup
 
-```.sh-session
+```bash
 # Set up and activate a virtualenv
 python -mvenv .venv
 source .venv/bin/activate
@@ -13,7 +13,7 @@ pip install -r requirements.txt
 
 For now, just a simple test script taken from <https://github.com/MDAnalysis/mdanalysis>
 
-```.sh-session
+```bash
 # Move "crambin_md.pdb" and "crambin_md.xtc" into "data/"
 python md_test.py
 ```
