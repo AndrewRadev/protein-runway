@@ -8,7 +8,40 @@ class CreateWaterOperator(bpy.types.Operator):
     bl_idname = "protein_runway.create_water_operator"
     bl_label = "Create a water molecule"
 
-    def create_atom(self, name, color, radius, location):
+    def execute(self, context):
+        red  = (1, 0, 0, 1)
+        gray = (0.3, 0.3, 0.3, 1)
+
+        o  = self.create_atom("Oxygen",     red,  1.0)
+        h1 = self.create_atom("Hydrogen_1", gray, 0.7)
+        h2 = self.create_atom("Hydrogen_2", gray, 0.7)
+        # b1 = self.create_bond(o, h1, 0.1)
+        # b2 = self.create_bond(o, h2, 0.1)
+
+        self.set_atom_position(o,  (0.0, 0.0,  0.5),  frame=1)
+        self.set_atom_position(h1, (0.0, 1.5,  -1.0), frame=1)
+        self.set_atom_position(h2, (0.0, -1.5, -1.0), frame=1)
+        # self.update_bond(b1, o, h1, frame=1)
+        # self.update_bond(b2, o, h2, frame=1)
+
+        self.set_atom_position(o,  (0.0, 0.0,  1.5),  frame=10)
+        self.set_atom_position(h1, (0.0, 1.5,  -0.0), frame=10)
+        self.set_atom_position(h2, (0.0, -1.5, -0.0), frame=10)
+        # self.update_bond(b1, o, h1, frame=10)
+        # self.update_bond(b2, o, h2, frame=10)
+
+        self.set_atom_position(o,  (0.0, 0.0,  0.5),  frame=20)
+        self.set_atom_position(h1, (0.0, 1.5,  -1.0), frame=20)
+        self.set_atom_position(h2, (0.0, -1.5, -1.0), frame=20)
+        # self.update_bond(b1, o, h1, frame=20)
+        # self.update_bond(b2, o, h2, frame=20)
+
+        for item in [o, h1, h2]:
+            item.select_set(True)
+
+        return {'FINISHED'}
+
+    def create_atom(self, name, color, radius):
         # Create an empty mesh and the object.
         mesh = bpy.data.meshes.new(name)
         atom = bpy.data.objects.new(name, mesh)
@@ -17,7 +50,6 @@ class CreateWaterOperator(bpy.types.Operator):
 
         material.diffuse_color = color
         atom.active_material   = material
-        atom.location          = location
 
         # Add the object into the scene.
         bpy.context.collection.objects.link(atom)
@@ -41,36 +73,36 @@ class CreateWaterOperator(bpy.types.Operator):
         vector = (object2.location - object1.location)
         distance = vector.length
 
-        phi = math.atan2(vector[1], vector[0])
-        theta = math.acos(vector[2]/distance)
-
         cylinder = bpy.ops.mesh.primitive_cylinder_add(
-            radius = radius,
-            depth = distance,
-            location = object1.location + vector / 2,
-            rotation = (0, theta, phi)
+            radius=radius,
+            depth=distance,
         )
-
         bpy.context.active_object.name = f"Bond {object1.name}-{object2.name}"
 
         return cylinder
 
+    def set_atom_position(self, atom, location, frame):
+        atom.location = location
+        atom.keyframe_insert(data_path="location", frame=frame)
 
-    def execute(self, context):
-        red  = (1, 0, 0, 1)
-        gray = (0.3, 0.3, 0.3, 1)
+    def update_bond(self, bond, object1, object2, frame):
+        vector = (object2.location - object1.location)
+        distance = vector.length
 
-        o  = self.create_atom("Oxygen",     red,  1.0, (0.0, 0.0,  0.5))
-        h1 = self.create_atom("Hydrogen_1", gray, 0.7, (0.0, 1.5,  -1.0))
-        h2 = self.create_atom("Hydrogen_2", gray, 0.7, (0.0, -1.5, -1.0))
+        phi = math.atan2(vector[1], vector[0])
+        theta = math.acos(vector[2]/distance)
 
-        b1 = self.create_bond(o, h1, 0.1)
-        b2 = self.create_bond(o, h2, 0.1)
+        # Depth of the cylinder:
+        # bond.dimensions[2] = distance
 
-        for item in [o, h1, h2, b1, b2]:
-            item.select_set(True)
+        bond.location = object1.location + vector / 2
+        bond.rotation = (0, theta, phi)
 
-        return {'FINISHED'}
+        # bond.keyframe_insert(data_path="dimensions", frame=frame)
+        bond.keyframe_insert(data_path="location", frame=frame)
+        bond.keyframe_insert(data_path="rotation", frame=frame)
+
+
 
 
 def draw_create_water_menu(self, context):
@@ -87,4 +119,7 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
     bpy.types.TOPBAR_MT_edit.append(draw_create_water_menu)
+
+    bpy.data.scenes[0].frame_end = 20
