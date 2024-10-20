@@ -1,4 +1,10 @@
+# Input data:
 data/*
 !data/.keep
 
+# Output of scripts:
+output/*
+!output/.keep
+
+# Python virtual env:
 .venv/*
