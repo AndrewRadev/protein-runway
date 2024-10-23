@@ -12,14 +12,16 @@ import os
 # conda install conda-forge::mdtraj (for mdconvert)
 # make sure numpy is at least v1.2
 
-traj_file = '1jk9_traj.trr'
+# parse command line argument
+traj_file = sys.argv[1]
+print('Trajectory file:', traj_file)
 protein_name = traj_file.split('_')[0]
 output_file = traj_file[:-4] + '.dcd'
 pdb = protein_name+'_noPTM_tleapout.pdb'
 
 
 # run mdconvert to get dcd format trajectory
-os.system('mdconvert -i %s -o %s' % (traj_file, output_file))
+os.system('mdconvert %s -o %s' % (traj_file, output_file))
 
 ensemble = parseDCD(output_file)
 num_atoms = ensemble.numAtoms()
@@ -44,4 +46,3 @@ for mode in eda_ensemble[:4]:
 
 nmd_file = protein_name + '_ensemble.nmd'
 writeNMD(nmd_file, eda_ensemble[:3], structure)
-
