@@ -2,13 +2,29 @@
 from prody import *
 from pylab import *
 import numpy as np
+import os
+
+# activate conda environment
+# module load 
+#   cluster/genius/interactive
+#   Python/3.7.0-foss-2018a
+# conda install conda-forge::prody
+# conda install conda-forge::mdtraj (for mdconvert)
+# make sure numpy is at least v1.2
+
+traj_file = '1jk9_traj.trr'
+protein_name = traj_file.split('_')[0]
+output_file = traj_file[:-4] + '.dcd'
+pdb = protein_name+'_noPTM_tleapout.pdb'
 
 
-structure = parsePDB("1fuu_noPTM_tleapout.pdb").select('index 1 to 9510')
+# run mdconvert to get dcd format trajectory
+os.system('mdconvert -i %s -o %s' % (traj_file, output_file))
 
-print(structure.numAtoms()) #9510
+ensemble = parseDCD(output_file)
+num_atoms = ensemble.numAtoms()
 
-ensemble = parseDCD("1fuu_traj.dcd")
+structure = parsePDB(pdb).select('index 1 to %d' % num_atoms)
 
 ensemble.setCoords(structure)
 
@@ -16,14 +32,16 @@ ensemble.setAtoms(structure)
 
 ensemble.superpose()
 
-eda_ensemble = EDA('1FUU Ensemble')
+
+eda_ensemble = EDA('%s Ensemble' % protein_name)
 
 eda_ensemble.buildCovariance(ensemble)
 
-eda_ensemble.calcModes(n_modes=10)
+eda_ensemble.calcModes(n_modes=10) # can do more but will take longer
 
 for mode in eda_ensemble[:4]:
    print(calcFractVariance(mode).round(2))
 
-writeNMD('mdm2_eda.nmd', eda_ensemble[:3], structure.select('calpha'))
+nmd_file = protein_name + '_ensemble.nmd'
+writeNMD(nmd_file, eda_ensemble[:3], structure)
 
