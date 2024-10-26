@@ -8,3 +8,6 @@ output/*
 
 # Python virtual env:
 .venv/*
+
+# Mamba environment:
+.micromamba/*
