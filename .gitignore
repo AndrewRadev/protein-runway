@@ -1,13 +1,17 @@
 # Input data:
 data/*
 !data/.keep
+# Keep PDB files in the repo for now: they're small enough
+!data/pdb/*.pdb
 
 # Output of scripts:
 output/*
 !output/.keep
 
-# Python virtual env:
+# Environments and metadata:
 .venv/*
-
-# Mamba environment:
 .micromamba/*
+.snakemake/*
+
+# Vendored code:
+vendor/*
