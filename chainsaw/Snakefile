@@ -1,0 +1,17 @@
+from glob import glob
+
+# Define a rule to process all .pdb files in pdb_files/
+rule all:
+    input:
+        expand("output_chainsaw/{pdb_file}.tsv", pdb_file=glob_wildcards("pdb_files/{pdb_file}.pdb").pdb_file)
+
+# Define the rule to process each pdb file
+rule get_predictions:
+    input:
+        structure_file="pdb_files/{pdb_file}.pdb"
+    output:
+        output_file="output_chainsaw/{pdb_file}.tsv"
+    shell:
+        """
+        python get_predictions.py --structure_file {input.structure_file} --output {output.output_file}
+        """

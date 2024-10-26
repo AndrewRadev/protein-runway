@@ -1,0 +1,18 @@
+from snakemake.io import glob_wildcards
+
+pdb_files = glob_wildcards("examples/{pdb_file}.pdb").pdb_file
+
+rule all:
+    input:
+        expand("output_merizo/{pdb_file}.txt", pdb_file=pdb_files)
+
+rule get_predictions:
+    input:
+        structure_file="examples/{pdb_file}.pdb"  # Use wildcard for input pdb file
+    output:
+        output_file="output_merizo/{pdb_file}.txt"  # Use wildcard for output file
+
+    shell:
+        """
+        python predict.py -d cpu -i {input.structure_file} > {output.output_file}
+	"""
