@@ -88,15 +88,15 @@ rule get_merizo_predictions:
             > {output.output_file}
         """
 
-rule build_dcd_file:
-    input:
-        traj="data/traj/{protein_name}.xtc"
-    output:
-        dcd_file="output/pca/{protein_name}.dcd"
-    shell:
-        """
-        mdconvert {input.traj} -o {output.dcd_file}
-        """
+rule build_dcd_file_from_xtc:
+    input: traj="data/traj/{protein_name}.xtc"
+    output: dcd_file="output/pca/{protein_name}.dcd"
+    shell: "mdconvert {input.traj} -o {output.dcd_file}"
+
+rule build_dcd_file_from_trr:
+    input: traj="data/traj/{protein_name}.trr"
+    output: dcd_file="output/pca/{protein_name}.dcd"
+    shell: "mdconvert {input.traj} -o {output.dcd_file}"
 
 rule build_nmd_file:
     input:
