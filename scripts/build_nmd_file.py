@@ -15,7 +15,7 @@ protein_name = Path(pdb_file).stem
 
 ensemble = parseDCD(dcd_file)
 num_atoms = ensemble.numAtoms()
-structure = parsePDB(pdb_file).select('index 1 to %d' % num_atoms)
+structure = parsePDB(pdb_file)
 
 ensemble.setCoords(structure)
 ensemble.setAtoms(structure)
@@ -23,4 +23,6 @@ ensemble.superpose()
 
 eda_ensemble = EDA('%s Ensemble' % protein_name)
 eda_ensemble.buildCovariance(ensemble)
-eda_ensemble.calcModes(n_modes=10) # can do more but will take longer
+eda_ensemble.calcModes(n_modes=3) # can do more but will take longer
+
+writeNMD(output_file, eda_ensemble[:3], structure)
