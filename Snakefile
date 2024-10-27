@@ -87,3 +87,24 @@ rule get_merizo_predictions:
             -i {input.structure_file} \
             > {output.output_file}
         """
+
+rule build_dcd_file:
+    input:
+        traj="data/traj/{protein_name}.xtc"
+    output:
+        dcd_file="output/pca/{protein_name}.dcd"
+    shell:
+        """
+        mdconvert {input.traj} -o {output.dcd_file}
+        """
+
+rule build_nmd_file:
+    input:
+        pdb_file="data/pdb/{protein_name}.pdb",
+        dcd_file="output/pca/{protein_name}.dcd"
+    output:
+        nmd_file="output/pca/{protein_name}.nmd"
+    shell:
+        """
+        python scripts/build_nmd_file.py {input.pdb_file} {input.dcd_file} {output.nmd_file}
+        """
