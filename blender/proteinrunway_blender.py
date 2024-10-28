@@ -1,3 +1,6 @@
+#this script is just a skeleton for the blender plugin assuming we would have added operators for each
+# of the fragmentation methods instead needing to process the data before importing to blender
+
 bl_info = {
     "name": "Protein Runway",
     "blender": (2, 80, 0),
