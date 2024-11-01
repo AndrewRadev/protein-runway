@@ -15,7 +15,7 @@ protein_name = Path(pdb_file).stem
 
 ensemble = parseDCD(dcd_file)
 num_atoms = ensemble.numAtoms()
-structure = parsePDB(pdb_file)
+structure = parsePDB(pdb_file).select('index 1 to %d' % num_atoms)
 
 ensemble.setCoords(structure)
 ensemble.setAtoms(structure)
