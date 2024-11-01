@@ -1,0 +1,12 @@
+name: protein-runway
+channels:
+  - conda-forge
+  - anaconda
+  - bioconda
+dependencies:
+  - python =3.11
+  - prody
+  - snakemake
+
+  # For MD-TASK:
+  - r-igraph
