@@ -18,6 +18,10 @@ num_atoms = ensemble.numAtoms()
 structure = parsePDB(pdb_file)
 
 ensemble.setCoords(structure)
+
+# Limit to alpha carbons to keep a low memory profile
+structure = structure.select('calpha')
+
 ensemble.setAtoms(structure)
 ensemble.superpose()
 
