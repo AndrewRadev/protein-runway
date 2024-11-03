@@ -90,7 +90,7 @@ rule mdtask_qa:
             --lazy-load
         """
 
-rule get_chainsaw_predictions:
+rule get_chainsaw_clustering:
     input:
         structure_file="data/pdb/{pdb_file}.pdb",
         chainsaw_ok=CHAINSAW_OK
@@ -103,7 +103,7 @@ rule get_chainsaw_predictions:
             --output {output.output_file}
         """
 
-rule get_merizo_predictions:
+rule get_merizo_clustering:
     input:
         structure_file="data/pdb/{pdb_file}.pdb",
         merizo_ok=MERIZO_OK
@@ -115,6 +115,16 @@ rule get_merizo_predictions:
             -d cpu \
             -i {input.structure_file} \
             > {output.output_file}
+        """
+
+rule get_mdtask_clustering:
+    input:
+        correlation_file="output/correlation/{pdb_file}.txt"
+    output:
+        output_file="output/correlation/{pdb_file}.tsv"
+    shell:
+        """
+        python scripts/segment_by_correlation.py {input.correlation_file} {output.output_file}
         """
 
 rule build_dcd_file_from_xtc:
