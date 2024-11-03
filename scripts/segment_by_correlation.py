@@ -49,7 +49,7 @@ for i, group in enumerate(clusters):
             groupings[group].append((new_residue,))
 
 group_descriptions = []
-for i in range(1, max(groupings.keys())):
+for i in range(1, max(groupings.keys()) + 1):
     group_descriptions.append('_'.join([f"{start}-{end}" for start, end in groupings[i]]))
 
 description = ','.join(group_descriptions)
