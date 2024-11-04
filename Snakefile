@@ -127,25 +127,29 @@ rule get_mdtask_clustering:
         python scripts/segment_by_correlation.py {input.correlation_file} {output.output_file}
         """
 
-rule build_dcd_file_from_xtc:
-    input: traj="data/traj/{protein_name}.xtc"
-    output: dcd_file="output/pca/{protein_name}.dcd"
-    shell: "mdconvert {input.traj} -o {output.dcd_file}"
+rule rename_top_file_to_prmtop:
+    input: "{path}.top"
+    output: "{path}.prmtop"
+    shell: "mv {input} {output}"
 
-rule build_dcd_file_from_trr:
-    input: traj="data/traj/{protein_name}.trr"
-    output: dcd_file="output/pca/{protein_name}.dcd"
-    shell: "mdconvert {input.traj} -o {output.dcd_file}"
+rule build_pdb_with_traj:
+    input:
+        topology="data/top/{protein_name}_complex.prmtop",
+        trajectory="data/traj/{protein_name}_10-20ns_100snap.trr"
+    output:
+        pdb_file="data/pdb/{protein_name}.with_traj.pdb"
+    shell: """
+        mdconvert {input.trajectory} -t {input.topology} -o {output.pdb_file}
+    """
 
 rule build_nmd_file:
     input:
-        pdb_file="data/pdb/{protein_name}.pdb",
-        dcd_file="output/pca/{protein_name}.dcd"
+        pdb_file="data/pdb/{protein_name}.with_traj.pdb",
     output:
         nmd_file="output/pca/{protein_name}.nmd"
     shell:
         """
-        python scripts/build_nmd_file.py {input.pdb_file} {input.dcd_file} {output.nmd_file}
+        python scripts/build_nmd_file.py {input.pdb_file} {output.nmd_file}
         """
 
 rule get_trajectory_correlation:
