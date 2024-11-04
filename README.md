@@ -11,10 +11,10 @@ bash install_micromamba.sh
 
 **Important**: When asked for a "root prefix", choose `.micromamba`, without the `~` at the beginning. By default, micromamba creates environments in the home directory. You don't want that on the VSC or you'll run out of quota. Choosing `.micromamba` is going to install packages inside of the repo itself in a folder `.micromamba`, which is gitignored.
 
-Set up and activate an environment:
+Set up and activate a `protein-runway` environment from the env file in the repo:
 
 ```bash
-micromamba create -n protein-runway -c conda-forge python=3.11
+micromamba create -f micromamba_env.yml
 micromamba activate protein-runway
 ```
 
