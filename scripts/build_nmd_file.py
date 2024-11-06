@@ -26,6 +26,6 @@ ensemble.superpose()
 
 eda_ensemble = EDA('%s EDA' % protein_name)
 eda_ensemble.buildCovariance(ensemble)
-eda_ensemble.calcModes(n_modes=3)
+eda_ensemble.calcModes(n_modes=10)
 
-writeNMD(output_file, eda_ensemble[:3], structure)
+writeNMD(output_file, eda_ensemble[:10], structure)

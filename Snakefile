@@ -154,16 +154,16 @@ rule build_nmd_file:
 
 rule get_trajectory_correlation:
     input:
-        pdb="data/pdb/{protein_name}.pdb",
-        traj="data/traj/{protein_name}.xtc"
+        topology="data/top/{protein_name}_complex.prmtop",
+        trajectory="data/traj/{protein_name}_10-20ns_100snap.trr"
     output:
         correlation_png="output/correlation/{protein_name}.png",
         correlation_txt="output/correlation/{protein_name}.txt"
     shell:
         """
         python vendor/mdtask/calc_correlation.py \
-            --trajectory {input.traj} \
-            --topology {input.pdb} \
+            --trajectory {input.trajectory} \
+            --topology {input.topology} \
             --prefix output/correlation/{wildcards.protein_name} \
             --step 100 \
             --lazy-load
