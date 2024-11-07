@@ -5,11 +5,28 @@ This guide will describe how to set up an environment using micromamba, but cond
 To install micromamba ([Reference](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html)):
 
 ```bash
+# If on the VSC:
+cd $VSC_DATA
+
 curl -L micro.mamba.pm/install.sh > install_micromamba.sh
 bash install_micromamba.sh
 ```
 
-**Important**: When asked for a "root prefix", choose `.micromamba`, without the `~` at the beginning. By default, micromamba creates environments in the home directory. You don't want that on the VSC or you'll run out of quota. Choosing `.micromamba` is going to install packages inside of the repo itself in a folder `.micromamba`, which is gitignored.
+This should show you a step-by-step wizard:
+
+```
+Micromamba binary folder? [~/.local/bin] -> Default is fine
+Init shell (bash)? [Y/n]                 -> Default is fine (may be different based on your default shell)
+Configure conda-forge? [Y/n]             -> Default is fine
+Prefix location? [~/micromamba]          -> Change, see below
+```
+
+**Important**: When asked for a "root prefix", you can choose:
+
+- `.micromamba`, without the `~` at the beginning. This will create one folder named `.micromamba` where you currently are, which contains the default environment. When you create a new environment while inside a project, it will create a new `.micromamba` folder inside that project for your new environment.
+- `$VSC_DATA/.micromamba`: This will create one directory that will hold all your environments.
+
+By default, micromamba creates environments in the home directory. You don't want that on the VSC or you'll run out of quota. The `.micromamba` directory is gitignored in the protein-runway project, so it's a fine choice. It's also okay to choose `$VSC_DATA/micromamba` or whatever you like inside of `$VSC_DATA`.
 
 Set up and activate a `protein-runway` environment from the env file in the repo:
 
