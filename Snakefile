@@ -152,6 +152,16 @@ rule build_nmd_file:
         python scripts/build_nmd_file.py {input.pdb_file} {output.nmd_file}
         """
 
+rule build_nmd_trajectory:
+    input:
+        nmd_file="output/pca/{protein_name}.nmd",
+    output:
+        traj_file="output/pca/{protein_name}.nmd.pdb"
+    shell:
+        """
+        python scripts/generate_nmd_traj.py {input.nmd_file} {output.traj_file}
+        """
+
 rule get_trajectory_correlation:
     input:
         topology="data/top/{protein_name}_complex.prmtop",
