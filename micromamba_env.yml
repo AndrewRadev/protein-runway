@@ -8,5 +8,10 @@ dependencies:
   - prody
   - snakemake
 
+  - r-bio3d
+
+  # Might be useful for saving data for python:
+  - r-jsonlite
+
   # For MD-TASK:
   - r-igraph
