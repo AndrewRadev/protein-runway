@@ -12,6 +12,6 @@ clustering3 = geostas(traj, K=3)
 # Reuse computed atomic movement similarity matrix (AMSM):
 amsm = clustering3$amsm
 
-clustering4 = geostas(traj, K=4)
-clustering5 = geostas(traj, K=5)
-clustering6 = geostas(traj, K=6)
+clustering4 = geostas(traj, amsm=amsm, K=4)
+clustering5 = geostas(traj, amsm=amsm, K=5)
+clustering6 = geostas(traj, amsm=amsm, K=6)
