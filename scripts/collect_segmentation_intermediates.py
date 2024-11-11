@@ -20,8 +20,8 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 def main():
-    output_file = sys.argv[-1]
     input_files = sys.argv[1:-1]
+    output_file = sys.argv[-1]
 
     columns = ['index', 'method', 'domain_count', 'chopping']
     segmentations = []
