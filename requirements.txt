@@ -52,8 +52,3 @@ urllib3==2.0.2
 torch==2.0.1
 scipy==1.10.1
 matplotlib==3.7.1
-
-# For md-task
-matplotlib
-cython
-networkx
