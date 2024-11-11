@@ -37,7 +37,7 @@ def main():
             pass
             # Ignore for now, fails on these PDBs
         elif '/bio3d_geostas/' in path:
-            # Path is a directory with clusteringsNN.json files:
+            # Path is a directory with clusteringNN.json files:
             for file in sorted(Path(path).glob('clustering*.json')):
                 k           = int(re.findall(r'\d\d', Path(file).stem)[0])
                 atom_groups = json.loads(Path(file).read_text())
