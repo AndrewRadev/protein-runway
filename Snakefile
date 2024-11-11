@@ -2,10 +2,8 @@ from snakemake.io import glob_wildcards
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
 
-MERIZO_OK        = 'vendor/merizo_ok.txt'
-CHAINSAW_OK      = 'vendor/chainsaw_ok.txt'
-MDTASK_OK_PREFIX = 'vendor/mdtask_ok'
-MDTASK_OK        = f'{MDTASK_OK_PREFIX}.txt'
+MERIZO_OK   = 'vendor/merizo_ok.txt'
+CHAINSAW_OK = 'vendor/chainsaw_ok.txt'
 
 rule all:
     input:
