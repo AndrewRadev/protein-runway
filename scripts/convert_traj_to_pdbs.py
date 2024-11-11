@@ -8,6 +8,7 @@ Input:
 Output:
 - <protein.with_traj.pdb>:    PDB with a trajectory
 - <protein.with_traj.ca.pdb>: Same as above, but reduced to only carbon atoms
+- <protein.with_traj.ca.dcd>: Same as above, but in a DCD format
 - <protein.static.pdb>:       Static snapshot of the first frame
 """
 
