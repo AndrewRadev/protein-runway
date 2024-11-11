@@ -74,6 +74,9 @@ rule get_chainsaw_clustering:
         python vendor/chainsaw/get_predictions.py \
             --structure_file {input.structure_file} \
             --output {output.output_file}
+
+        # Clean up after chainsaw
+        rmdir results/
         """
 
 rule get_merizo_clustering:
@@ -97,6 +100,7 @@ rule build_pdbs:
     output:
         traj_pdb_file="02_intermediate/pdb/{protein_name}.with_traj.pdb",
         traj_ca_pdb_file="02_intermediate/pdb/{protein_name}.with_traj.ca.pdb",
+        traj_ca_dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd",
         static_pdb_file="02_intermediate/pdb/{protein_name}.static.pdb"
     shell: """
         python scripts/convert_traj_to_pdbs.py \
@@ -124,15 +128,26 @@ rule build_nmd_trajectory:
         python scripts/generate_nmd_traj.py {input.nmd_file} {output.traj_file}
         """
 
+rule segment_by_bio3d_geostas:
+    input:
+        dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd"
+    output:
+        clustering=directory("02_intermediate/bio3d_geostas/{protein_name}")
+    shell:
+        """
+        Rscript scripts/segment_with_bio3d_geostas.R {input.dcd_file} {output.clustering}
+        """
+
 rule collect_segmentation_intermediates:
     input:
         chainsaw="02_intermediate/chainsaw/{protein_name}.tsv",
-        merizo="02_intermediate/merizo/{protein_name}.tsv"
+        merizo="02_intermediate/merizo/{protein_name}.tsv",
+        bio3d_geostas="02_intermediate/bio3d_geostas/{protein_name}/"
     output:
         segmentation="03_output/{protein_name}.segmentation.tsv"
     shell:
         """
         python scripts/collect_segmentation_intermediates.py \
-            {input.chainsaw} {input.merizo} \
+            {input.chainsaw} {input.merizo} {input.bio3d_geostas} \
             {output.segmentation}
         """

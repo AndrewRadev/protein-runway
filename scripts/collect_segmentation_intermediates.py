@@ -28,7 +28,6 @@ def main():
         if '/chainsaw/' in path:
             rows = read_csv_rows(path, delimiter='\t')
             data = rows[0]
-            print(data)
             segmentations.append((index, "chainsaw", data['ndom'], data['chopping']))
             index += 1
         elif '/merizo/' in path:
