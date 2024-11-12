@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 import bpy
 import MDAnalysis as mda
 
@@ -11,6 +8,7 @@ bpy.types.Scene.ProteinRunway_local_path = bpy.props.StringProperty(
     subtype="FILE_PATH",
     maxlen=0,
 )
+
 
 class ImportTrajectoryOperator(bpy.types.Operator):
     "Load the PDB"
@@ -49,7 +47,6 @@ class ImportTrajectoryPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        row = layout.row(align=True)
 
         layout.label(text="Load a PDB File with a trajectory", icon="FILE_TICK")
         layout.separator()
@@ -67,4 +64,5 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_class(RenderTrajectory)
+    bpy.utils.unregister_class(ImportTrajectoryOperator)
+    bpy.utils.unregister_class(ImportTrajectoryPanel)
