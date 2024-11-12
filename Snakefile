@@ -74,7 +74,9 @@ rule get_chainsaw_clustering:
             --output {output.output_file}
 
         # Clean up after chainsaw
-        rmdir results/
+        if [ -d results ]; then
+          rmdir results/
+        fi
         """
 
 rule get_merizo_clustering:
