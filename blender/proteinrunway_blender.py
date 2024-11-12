@@ -11,10 +11,10 @@ import bpy
 
 
 class Fragmentation(bpy.types.Operator):
-    """My Protein Fragmentation Script"""      # Use this as a tooltip for menu items and buttons.
-    bl_idname = "object.merizo"        # Unique identifier for buttons and menu items to reference.
+    """My Protein Fragmentation Script""" # Use this as a tooltip for menu items and buttons.
+    bl_idname = "object.merizo"           # Unique identifier for buttons and menu items to reference.
     bl_label = "Fragment Protein"         # Display name in the interface.
-    bl_options = {'REGISTER', 'UNDO'}  # Enable undo for the operator.
+    bl_options = {'REGISTER', 'UNDO'}     # Enable undo for the operator.
 
     def execute(self, context):        # execute() is called when running the operator.
 
@@ -24,7 +24,7 @@ class Fragmentation(bpy.types.Operator):
             continue
 
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
-    
+
 
 def menu_func(self, context):
     self.layout.operator(Fragmentation.bl_idname)
