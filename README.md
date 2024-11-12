@@ -47,7 +47,7 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-## Run
+## Run snakemake
 
 Before running any code, we need to activate the micromamba environment:
 
@@ -65,3 +65,32 @@ The input data consists of two files per protein from Zenodo <https://zenodo.org
     - Location: `01_input/top/`
 
 At that point, `snakemake -call` should build all necessary output files for these proteins into `03_output`.
+
+## Build blender extension
+
+You need to install packages and zip them. To install, this should work from the root of the project:
+
+```
+pip wheel mdanalysis -w ./blender/extension/wheels/
+```
+
+Then zipping the extension can be done by running:
+
+```
+bash blender/build.sh
+```
+
+But this assumes you're on Linux or Mac, so you can just take the contents of the "blender/extension" folder and zip them manually. You can then install the addon from `Edit > Preferences > Get Extensions`. Then, in the right-hand corner menu, `Install from Disk`.
+
+What blender does then is it just unzips that into a local folder. For me, that folder is `~/.config/blender/4.2/extensions/user_default`. So if you want, you can symlink the extension directly there, so that when you edit the code, you can just re-launch blender. For me, the directory looks like this:
+
+```
+% ls -al
+total 12K
+drwxr-xr-x 3 andrew andrew 4.0K Nov 12 20:47 .
+drwxr-xr-x 6 andrew andrew 4.0K Nov 12 20:02 ..
+drwxr-xr-x 3 andrew andrew 4.0K Nov 12 20:41 .blender_ext
+lrwxrwxrwx 1 andrew andrew   55 Nov 12 20:47 protein_runway -> /home/andrew/projects/protein-runway/blender/extension/
+```
+
+Again, if you're on Windows, you can't do symlnks, as far as I know. But you could edit that folder and then copy the changes back to the project so you can commit them into git. There might be other ways to work on the project easily.
