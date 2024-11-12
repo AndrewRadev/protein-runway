@@ -1,12 +1,14 @@
 # Input data:
-data/*
-!data/.keep
-# Keep PDB files in the repo for now: they're small enough
-!data/pdb/*.pdb
+01_input/*
+!01_input/.keep
 
-# Output of scripts:
-output/*
-!output/.keep
+# Intermediate output of scripts:
+02_intermediate/*
+!02_intermediate/.keep
+
+# Final output of scripts:
+03_output/*
+!03_output/.keep
 
 # Environments and metadata:
 .venv/*

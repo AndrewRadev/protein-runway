@@ -1,16 +1,14 @@
 from snakemake.io import glob_wildcards
 
-pdb_files = glob_wildcards("data/pdb/{pdb_file}.pdb").pdb_file
+protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
 
-MERIZO_OK        = 'vendor/merizo_ok.txt'
-CHAINSAW_OK      = 'vendor/chainsaw_ok.txt'
-MDTASK_OK_PREFIX = 'vendor/mdtask_ok'
-MDTASK_OK        = f'{MDTASK_OK_PREFIX}.txt'
+MERIZO_OK   = 'vendor/merizo_ok.txt'
+CHAINSAW_OK = 'vendor/chainsaw_ok.txt'
 
 rule all:
     input:
-        expand("output/merizo/{pdb_file}.tsv", pdb_file=pdb_files),
-        expand("output/chainsaw/{pdb_file}.tsv", pdb_file=pdb_files)
+        expand("03_output/{protein_name}.segmentation.tsv", protein_name=protein_names),
+        expand("03_output/{protein_name}.nmd_traj.pdb", protein_name=protein_names)
 
 rule merizo_setup:
     output: directory('vendor/merizo')
@@ -63,52 +61,28 @@ rule chainsaw_qa:
             --output {output}
         """
 
-rule mdtask_setup:
-    output: directory('vendor/mdtask')
-    shell:
-        """
-        git clone https://github.com/RUBi-ZA/MD-TASK vendor/mdtask
-        cd vendor/mdtask
-
-        # Check out known commit:
-        git checkout 6cff460
-
-        # Delete git history to save space:
-        rm -rf .git/
-        """
-
-rule mdtask_qa:
-    input: 'vendor/mdtask'
-    output: MDTASK_OK
-    shell:
-        """
-        python vendor/mdtask/calc_correlation.py \
-            --trajectory vendor/mdtask/example/example_small.dcd \
-            --topology vendor/mdtask/example/example_small.pdb \
-            --prefix {MDTASK_OK_PREFIX} \
-            --step 100 \
-            --lazy-load
-        """
-
 rule get_chainsaw_clustering:
     input:
-        structure_file="data/pdb/{pdb_file}.pdb",
+        structure_file="02_intermediate/pdb/{protein_name}.static.pdb",
         chainsaw_ok=CHAINSAW_OK
     output:
-        output_file="output/chainsaw/{pdb_file}.tsv"
+        output_file="02_intermediate/chainsaw/{protein_name}.tsv"
     shell:
         """
         python vendor/chainsaw/get_predictions.py \
             --structure_file {input.structure_file} \
             --output {output.output_file}
+
+        # Clean up after chainsaw
+        rmdir results/
         """
 
 rule get_merizo_clustering:
     input:
-        structure_file="data/pdb/{pdb_file}.pdb",
+        structure_file="02_intermediate/pdb/{protein_name}.static.pdb",
         merizo_ok=MERIZO_OK
     output:
-        output_file="output/merizo/{pdb_file}.tsv"
+        output_file="02_intermediate/merizo/{protein_name}.tsv"
     shell:
         """
         python vendor/merizo/predict.py \
@@ -117,36 +91,26 @@ rule get_merizo_clustering:
             > {output.output_file}
         """
 
-rule get_mdtask_clustering:
+rule build_pdbs:
     input:
-        correlation_file="output/correlation/{pdb_file}.txt"
+        topology="01_input/top/{protein_name}_complex.top",
+        trajectory="01_input/traj/{protein_name}_10-20ns_100snap.trr"
     output:
-        output_file="output/correlation/{pdb_file}.tsv"
-    shell:
-        """
-        python scripts/segment_by_correlation.py {input.correlation_file} {output.output_file}
-        """
-
-rule rename_top_file_to_prmtop:
-    input: "{path}.top"
-    output: "{path}.prmtop"
-    shell: "mv {input} {output}"
-
-rule build_pdb_with_traj:
-    input:
-        topology="data/top/{protein_name}_complex.prmtop",
-        trajectory="data/traj/{protein_name}_10-20ns_100snap.trr"
-    output:
-        pdb_file="data/pdb/{protein_name}.with_traj.pdb"
+        traj_pdb_file="02_intermediate/pdb/{protein_name}.with_traj.pdb",
+        traj_ca_pdb_file="02_intermediate/pdb/{protein_name}.with_traj.ca.pdb",
+        traj_ca_dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd",
+        static_pdb_file="02_intermediate/pdb/{protein_name}.static.pdb"
     shell: """
-        mdconvert {input.trajectory} -t {input.topology} -o {output.pdb_file}
+        python scripts/convert_traj_to_pdbs.py \
+            {wildcards.protein_name} {input.topology} {input.trajectory} \
+            02_intermediate/pdb/
     """
 
 rule build_nmd_file:
     input:
-        pdb_file="data/pdb/{protein_name}.with_traj.pdb",
+        pdb_file="02_intermediate/pdb/{protein_name}.with_traj.pdb",
     output:
-        nmd_file="output/pca/{protein_name}.nmd"
+        nmd_file="02_intermediate/pca/{protein_name}.nmd"
     shell:
         """
         python scripts/build_nmd_file.py {input.pdb_file} {output.nmd_file}
@@ -154,27 +118,34 @@ rule build_nmd_file:
 
 rule build_nmd_trajectory:
     input:
-        nmd_file="output/pca/{protein_name}.nmd",
+        nmd_file="02_intermediate/pca/{protein_name}.nmd",
     output:
-        traj_file="output/pca/{protein_name}.nmd.pdb"
+        traj_file="03_output/{protein_name}.nmd_traj.pdb"
     shell:
         """
         python scripts/generate_nmd_traj.py {input.nmd_file} {output.traj_file}
         """
 
-rule get_trajectory_correlation:
+rule segment_by_bio3d_geostas:
     input:
-        topology="data/top/{protein_name}_complex.prmtop",
-        trajectory="data/traj/{protein_name}_10-20ns_100snap.trr"
+        dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd"
     output:
-        correlation_png="output/correlation/{protein_name}.png",
-        correlation_txt="output/correlation/{protein_name}.txt"
+        clustering=directory("02_intermediate/bio3d_geostas/{protein_name}")
     shell:
         """
-        python vendor/mdtask/calc_correlation.py \
-            --trajectory {input.trajectory} \
-            --topology {input.topology} \
-            --prefix output/correlation/{wildcards.protein_name} \
-            --step 100 \
-            --lazy-load
+        Rscript scripts/segment_with_bio3d_geostas.R {input.dcd_file} {output.clustering}
+        """
+
+rule collect_segmentation_intermediates:
+    input:
+        chainsaw="02_intermediate/chainsaw/{protein_name}.tsv",
+        merizo="02_intermediate/merizo/{protein_name}.tsv",
+        bio3d_geostas="02_intermediate/bio3d_geostas/{protein_name}/"
+    output:
+        segmentation="03_output/{protein_name}.segmentation.tsv"
+    shell:
+        """
+        python scripts/collect_segmentation_intermediates.py \
+            {input.chainsaw} {input.merizo} {input.bio3d_geostas} \
+            {output.segmentation}
         """

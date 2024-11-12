@@ -55,9 +55,13 @@ Before running any code, we need to activate the micromamba environment:
 micromamba activate protein-runway
 ```
 
-For now, just a simple test script taken from <https://github.com/MDAnalysis/mdanalysis>
+The input data consists of two files per protein from Zenodo <https://zenodo.org/records/4650406>:
 
-```bash
-# Move "crambin_md.pdb" and "crambin_md.xtc" into "data/"
-python md_test.py
-```
+- Trajectory file from `Trajectory_snapshots_<code>_<code>.zip`:
+    - e.g. `1fuu_noPTM_10-20ns_100snap.trr`
+    - Location: `01_input/traj/`
+- Topology file from `Topology_stripped.zip`:
+    - Example: `1fuu_noPTM_complex.top`
+    - Location: `01_input/top/`
+
+At that point, `snakemake -call` should build all necessary output files for these proteins into `03_output`.
