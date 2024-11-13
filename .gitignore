@@ -17,3 +17,7 @@
 
 # Vendored code:
 vendor/*
+
+# Blender build artefacts:
+blender/extension.zip
+blender/extension/wheels/*
