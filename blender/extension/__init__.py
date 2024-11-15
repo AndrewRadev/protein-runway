@@ -8,6 +8,7 @@ import MDAnalysis as mda
 
 TIMER_INTERVAL = 0.001
 
+# For PDB file input:
 bpy.types.Scene.ProteinRunway_local_path = bpy.props.StringProperty(
     name="File",
     description="File path of the PDB with an embedded trajectory to open",
@@ -15,6 +16,9 @@ bpy.types.Scene.ProteinRunway_local_path = bpy.props.StringProperty(
     subtype="FILE_PATH",
     maxlen=0,
 )
+
+# For progress bar:
+bpy.types.Scene.ProteinRunway_progress = bpy.props.FloatProperty()
 
 
 class ImportPDBOperator(bpy.types.Operator):
@@ -156,12 +160,12 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
             self.insert_frame()
 
             progress = self.frames_inserted / len(self.universe.trajectory)
-            context.window_manager.ProteinRunway_progress = progress
+            context.scene.ProteinRunway_progress = progress
 
             self._updating = False
 
         if self.frames_inserted >= len(self.universe.trajectory):
-            context.window_manager.ProteinRunway_progress = progress
+            context.scene.ProteinRunway_progress = progress
             return self.finish(context)
 
         return {'PASS_THROUGH'}
@@ -222,7 +226,7 @@ class ImportTrajectoryPanel(bpy.types.Panel):
 
         # Progress bar:
         row = self.layout.row()
-        progress = context.window_manager.ProteinRunway_progress
+        progress = context.scene.ProteinRunway_progress
         if progress == 0:
             text = "..."
         elif progress < 1:
@@ -237,9 +241,6 @@ def register():
     bpy.utils.register_class(ImportPDBOperator)
     bpy.utils.register_class(AnimateTrajectoryOperator)
     bpy.utils.register_class(ImportTrajectoryPanel)
-
-    # For progress bar:
-    bpy.types.WindowManager.ProteinRunway_progress = bpy.props.FloatProperty()
 
 
 def unregister():
