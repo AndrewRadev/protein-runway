@@ -6,6 +6,8 @@ import mathutils
 
 import MDAnalysis as mda
 
+TIMER_INTERVAL = 0.001
+
 bpy.types.Scene.ProteinRunway_local_path = bpy.props.StringProperty(
     name="File",
     description="File path of the PDB with an embedded trajectory to open",
@@ -25,8 +27,8 @@ class ImportPDBOperator(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        scene = context.scene
-        file_path = scene.ProteinRunway_local_path
+        scene        = context.scene
+        file_path    = scene.ProteinRunway_local_path
         protein_name = Path(file_path).stem
 
         u = mda.Universe(file_path)
@@ -48,9 +50,8 @@ class ImportPDBOperator(bpy.types.Operator):
         return {'FINISHED'}
 
     def draw_alpha_carbons(self, universe, collection_protein):
-        atoms = universe.select_atoms('name = CA')
-
-        center = atoms.center_of_mass()
+        atoms    = universe.select_atoms('name = CA')
+        center   = atoms.center_of_mass()
         vertices = [p - center for p in atoms.positions]
 
         color = (0.3, 0.3, 0.3, 1)
@@ -118,10 +119,19 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
     def __init__(self):
         self.frames_inserted = 0
 
+        self._timer = None
+        self._updating = False
+
     def execute(self, context):
+        """
+        Just a necessary placeholder, the real entry point is `invoke`
+        """
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        """
+        Called once when the operator is invoked
+        """
         atom_mesh_object = context.selected_objects[0]
         self.mesh        = atom_mesh_object.data
 
@@ -129,17 +139,47 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
         self.universe = mda.Universe(pdb_path)
 
         context.window_manager.modal_handler_add(self)
+        self._updating = False
+        self._timer = context.window_manager.event_timer_add(TIMER_INTERVAL, window=context.window)
+
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
+        """
+        Main loop of the animation. Every TIMER event, a single frame is
+        inserted, until they're all done. A progress bar is updated inside the
+        panel.
+        """
+        if event.type == 'TIMER' and not self._updating:
+            self._updating = True
+
+            self.insert_frame()
+
+            progress = self.frames_inserted / len(self.universe.trajectory)
+            context.window_manager.ProteinRunway_progress = progress
+
+            self._updating = False
+
+        if self.frames_inserted >= len(self.universe.trajectory):
+            context.window_manager.ProteinRunway_progress = progress
+            return self.finish(context)
+
+        return {'PASS_THROUGH'}
+
+    def finish(self, context):
+        context.window_manager.event_timer_remove(self._timer)
+        self._timer = None
+        return {'FINISHED'}
+
+    def insert_frame(self):
         if self.frames_inserted == 0:
             # Snapshot first frame:
             for v in self.mesh.vertices:
                 v.keyframe_insert('co', frame=1)
             self.frames_inserted = 1
         else:
-            trajectory = self.universe.trajectory[self.frames_inserted]
-            atoms      = self.universe.select_atoms('name = CA')
+            next(self.universe.trajectory)
+            atoms = self.universe.select_atoms('name = CA')
 
             center   = atoms.center_of_mass()
             vertices = [p - center for p in atoms.positions]
@@ -158,16 +198,6 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
                 v.keyframe_insert('co', frame=(self.frames_inserted + 1))
 
             self.frames_inserted += 1
-
-        if self.frames_inserted >= len(self.universe.trajectory):
-            context.window_manager.progress = 1
-            return {'FINISHED'}
-        else:
-            progress = self.frames_inserted / len(self.universe.trajectory)
-            context.window_manager.progress = progress
-
-            return {'RUNNING_MODAL'}
-
 
 
 class ImportTrajectoryPanel(bpy.types.Panel):
@@ -192,7 +222,7 @@ class ImportTrajectoryPanel(bpy.types.Panel):
 
         # Progress bar:
         row = self.layout.row()
-        progress = context.window_manager.progress
+        progress = context.window_manager.ProteinRunway_progress
         if progress == 0:
             text = "..."
         elif progress < 1:
@@ -203,14 +233,13 @@ class ImportTrajectoryPanel(bpy.types.Panel):
         row.scale_x = 2
 
 
-
 def register():
     bpy.utils.register_class(ImportPDBOperator)
     bpy.utils.register_class(AnimateTrajectoryOperator)
     bpy.utils.register_class(ImportTrajectoryPanel)
 
     # For progress bar:
-    bpy.types.WindowManager.progress = bpy.props.FloatProperty()
+    bpy.types.WindowManager.ProteinRunway_progress = bpy.props.FloatProperty()
 
 
 def unregister():
