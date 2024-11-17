@@ -5,9 +5,18 @@ from .lib.animate_trajectory_operator import AnimateTrajectoryOperator
 from .lib.import_trajectory_panel import ImportTrajectoryPanel
 
 # For PDB file input:
-bpy.types.Scene.ProteinRunway_local_path = bpy.props.StringProperty(
+bpy.types.Scene.ProteinRunway_pdb_path = bpy.props.StringProperty(
     name="File",
     description="File path of the PDB with an embedded trajectory to open",
+    options={"TEXTEDIT_UPDATE"},
+    subtype="FILE_PATH",
+    maxlen=0,
+)
+
+# For segmentation TSV input:
+bpy.types.Scene.ProteinRunway_segmentation_path = bpy.props.StringProperty(
+    name="File",
+    description="File path a TSV with different segmentations for the protein",
     options={"TEXTEDIT_UPDATE"},
     subtype="FILE_PATH",
     maxlen=0,

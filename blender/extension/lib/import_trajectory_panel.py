@@ -14,11 +14,17 @@ class ImportTrajectoryPanel(bpy.types.Panel):
         layout = self.layout
         scene = context.scene
 
-        layout.label(text="Load a PDB File with a trajectory", icon="FILE_TICK")
+        layout.label(text="PDB File with an embedded trajectory", icon="FILE_3D")
+        row_file = layout.row()
+        row_file.prop(scene, "ProteinRunway_pdb_path")
+
         layout.separator()
 
+        layout.label(text="Segmentation mapping file", icon="AREA_JOIN")
         row_file = layout.row()
-        row_file.prop(scene, "ProteinRunway_local_path")
+        row_file.prop(scene, "ProteinRunway_segmentation_path")
+
+        layout.separator()
 
         row_button = layout.row()
         row_button.operator(ImportPDBOperator.bl_idname)

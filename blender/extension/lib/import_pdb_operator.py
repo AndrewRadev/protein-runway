@@ -16,7 +16,7 @@ class ImportPDBOperator(bpy.types.Operator):
 
     def execute(self, context):
         scene        = context.scene
-        file_path    = scene.ProteinRunway_local_path
+        file_path    = scene.ProteinRunway_pdb_path
         protein_name = Path(file_path).stem
 
         if len(file_path) == 0:

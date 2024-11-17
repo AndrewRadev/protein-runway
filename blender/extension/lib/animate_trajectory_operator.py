@@ -32,7 +32,7 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
         atom_mesh_object = context.selected_objects[0]
         self.mesh        = atom_mesh_object.data
 
-        pdb_path      = context.scene.ProteinRunway_local_path
+        pdb_path      = context.scene.ProteinRunway_pdb_path
         self.universe = mda.Universe(pdb_path)
 
         context.window_manager.modal_handler_add(self)
