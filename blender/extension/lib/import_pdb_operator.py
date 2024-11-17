@@ -19,7 +19,15 @@ class ImportPDBOperator(bpy.types.Operator):
         file_path    = scene.ProteinRunway_local_path
         protein_name = Path(file_path).stem
 
-        u = mda.Universe(file_path)
+        if len(file_path) == 0:
+            self.report({'WARNING'}, 'No PDB provided')
+            return {'CANCELLED'}
+
+        try:
+            u = mda.Universe(file_path)
+        except ValueError as e:
+            self.report({'ERROR'}, f"MDAnalysis error: {e}")
+            return {'CANCELLED'}
 
         collection_protein = bpy.data.collections.new(protein_name)
         scene.collection.children.link(collection_protein)
