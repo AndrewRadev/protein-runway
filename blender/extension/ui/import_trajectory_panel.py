@@ -15,19 +15,24 @@ class ImportTrajectoryPanel(bpy.types.Panel):
         scene = context.scene
 
         layout.label(text="PDB File with an embedded trajectory", icon="FILE_3D")
-        row_file = layout.row()
-        row_file.prop(scene, "ProteinRunway_pdb_path")
+        row = layout.row()
+        row.prop(scene, "ProteinRunway_pdb_path")
 
         layout.separator()
 
         layout.label(text="Segmentation mapping file", icon="AREA_JOIN")
-        row_file = layout.row()
-        row_file.prop(scene, "ProteinRunway_segmentation_path")
+        row = layout.row()
+        row.prop(scene, "ProteinRunway_segmentation_path")
+
+        if len(scene.ProteinRunway_segmentations) > 0:
+            row = layout.row()
+            # TODO (2024-11-17) Render dropdown (somehow)
+            row.prop(scene, "ProteinRunway_segmentations")
 
         layout.separator()
 
-        row_button = layout.row()
-        row_button.operator(ImportPDBOperator.bl_idname)
+        row = layout.row()
+        row.operator(ImportPDBOperator.bl_idname)
 
         # Progress bar:
         row = self.layout.row()
