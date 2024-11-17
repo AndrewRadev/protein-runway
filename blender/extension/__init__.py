@@ -1,8 +1,8 @@
 import bpy
 
-from .lib.import_pdb_operator import ImportPDBOperator
-from .lib.animate_trajectory_operator import AnimateTrajectoryOperator
-from .lib.import_trajectory_panel import ImportTrajectoryPanel
+from .ui.import_pdb_operator import ImportPDBOperator
+from .ui.animate_trajectory_operator import AnimateTrajectoryOperator
+from .ui.import_trajectory_panel import ImportTrajectoryPanel
 
 # For PDB file input:
 bpy.types.Scene.ProteinRunway_pdb_path = bpy.props.StringProperty(
