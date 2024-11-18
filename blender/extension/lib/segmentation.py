@@ -7,7 +7,6 @@ def parse_segmentation_file(path):
     segmentations = {}
 
     # TODO (2024-11-17) Handle errors
-    # TODO (2024-11-17) Split chopping into lists of ranges
 
     with open(path) as f:
         reader = csv.DictReader(f, delimiter='\t')

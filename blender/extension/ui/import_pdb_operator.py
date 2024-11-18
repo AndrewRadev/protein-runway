@@ -16,21 +16,28 @@ class ImportPDBOperator(bpy.types.Operator):
 
     def execute(self, context):
         scene        = context.scene
-        file_path    = scene.ProteinRunway_pdb_path
-        protein_name = Path(file_path).stem
+        pdb_path     = scene.ProteinRunway_pdb_path
+        protein_name = Path(pdb_path).stem
 
-        if len(file_path) == 0:
+        if len(pdb_path) == 0:
             self.report({'WARNING'}, 'No PDB provided')
             return {'CANCELLED'}
 
         try:
-            u = mda.Universe(file_path)
+            u = mda.Universe(pdb_path)
         except ValueError as e:
             self.report({'ERROR'}, f"MDAnalysis error: {e}")
             return {'CANCELLED'}
 
         collection_protein = bpy.data.collections.new(protein_name)
         scene.collection.children.link(collection_protein)
+
+        segmentations = scene.ProteinRunway_segmentations
+        if len(segmentations) > 0:
+            segmentation_index = scene.ProteinRunway_segmentation_index
+            selected_segmentation = segmentations[segmentation_index]
+            # TODO (2024-11-18) Apply segmentation
+            print((selected_segmentation.method, selected_segmentation.chopping))
 
         atom_mesh_object = self.draw_alpha_carbons(u, collection_protein)
 

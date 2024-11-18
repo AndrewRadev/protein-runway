@@ -1,6 +1,7 @@
 import bpy
 
 from .import_pdb_operator import ImportPDBOperator
+from .segmentations_ui_list import SegmentationsUiList
 
 
 class ImportTrajectoryPanel(bpy.types.Panel):
@@ -26,8 +27,15 @@ class ImportTrajectoryPanel(bpy.types.Panel):
 
         if len(scene.ProteinRunway_segmentations) > 0:
             row = layout.row()
-            # TODO (2024-11-17) Render dropdown (somehow)
-            row.prop(scene, "ProteinRunway_segmentations")
+            row.label(text="Available segmentations", icon="AREA_JOIN")
+            row.template_list(
+                listtype_name=SegmentationsUiList.bl_idname,
+                list_id=SegmentationsUiList.bl_idname,
+                dataptr=scene,
+                propname="ProteinRunway_segmentations",
+                active_dataptr=scene,
+                active_propname="ProteinRunway_segmentation_index",
+            )
 
         layout.separator()
 
