@@ -4,6 +4,8 @@ import bpy
 
 import MDAnalysis as mda
 
+from ..lib.segmentation import generate_domain_ranges
+
 
 class ImportPDBOperator(bpy.types.Operator):
     "Load the PDB"
@@ -36,13 +38,17 @@ class ImportPDBOperator(bpy.types.Operator):
         if len(segmentations) > 0:
             segmentation_index = scene.ProteinRunway_segmentation_index
             selected_segmentation = segmentations[segmentation_index]
-            # TODO (2024-11-18) Apply segmentation
-            print((selected_segmentation.method, selected_segmentation.chopping))
 
-        atom_mesh_object = self.draw_alpha_carbons(u, collection_protein)
+            domain_regions = generate_domain_ranges(selected_segmentation.chopping)
+        else:
+            # One domain for the entire protein:
+            domain_regions = [[range(1, len(u.atoms))]]
 
-        atom_mesh_object.select_set(True)
-        bpy.ops.protein_runway.animate_trajectory('INVOKE_DEFAULT')
+        atom_mesh_objects = self.draw_alpha_carbons(u, collection_protein, domain_regions)
+
+        for o in atom_mesh_objects:
+            o.select_set(True)
+        # bpy.ops.protein_runway.animate_trajectory('INVOKE_DEFAULT')
 
         # TODO (2024-11-14) This is messy and invasive, it might interfere with
         # multiple trajectories
@@ -52,62 +58,81 @@ class ImportPDBOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def draw_alpha_carbons(self, universe, collection_protein):
-        atoms    = universe.select_atoms('name = CA')
-        center   = atoms.center_of_mass()
-        vertices = [p - center for p in atoms.positions]
+    def draw_alpha_carbons(self, universe, collection_protein, domain_regions):
+        all_atoms     = universe.select_atoms('name = CA')
+        global_center = all_atoms.center_of_mass()
 
-        color = (0.3, 0.3, 0.3, 1)
+        colors = [
+            (1.0, 1.0, 1.0, 1), # white
+            (0.8, 0.1, 0.1, 1), # red
+            (0.1, 0.8, 0.1, 1), # green
+            (0.1, 0.1, 0.8, 1), # blue
+            (0.3, 0.3, 0.3, 1), # gray
+        ]
         radius = 0.7
 
-        material = bpy.data.materials.new("Carbon_material")
-        material.diffuse_color = color
-        material.use_nodes = True
+        atom_mesh_objects = []
 
-        # TODO: Investigate this material modification by Atomic Blender:
-        #
-        # mat_P_BSDF = next(n for n in material.node_tree.nodes
-        #                   if n.type == "BSDF_PRINCIPLED")
-        # mat_P_BSDF.inputs['Base Color'].default_value = color
+        for i, domain in enumerate(domain_regions):
+            color        = colors[i % len(colors)]
+            domain_name  = f"Domain{i + 1:02}"
+            atoms        = sum(all_atoms[region] for region in domain)
+            local_center = atoms.center_of_mass() - global_center
+            vertices     = [p - global_center for p in atoms.positions]
 
-        material.name = "Carbon_material"
+            material = bpy.data.materials.new(f"{domain_name}_material")
+            material.diffuse_color = color
+            material.use_nodes = True
 
-        atom_mesh = bpy.data.meshes.new("Mesh_carbon")
-        atom_mesh.from_pydata(vertices, [], [])
-        atom_mesh.update()
-        atom_mesh_object = bpy.data.objects.new("Carbon_mesh_object", atom_mesh)
-        collection_protein.objects.link(atom_mesh_object)
+            # TODO: Investigate this material modification by Atomic Blender:
+            #
+            # mat_P_BSDF = next(n for n in material.node_tree.nodes
+            #                   if n.type == "BSDF_PRINCIPLED")
+            # mat_P_BSDF.inputs['Base Color'].default_value = color
 
-        # UV balls
-        bpy.ops.mesh.primitive_uv_sphere_add(
-            segments=32,
-            ring_count=32,
-            align='WORLD',
-            enter_editmode=False,
-            location=(0, 0, 0),
-            rotation=(0, 0, 0)
-        )
+            material.name = f"{domain_name}_material"
 
-        representative_ball = bpy.context.view_layer.objects.active
-        representative_ball.hide_set(True)
-        representative_ball.scale = (radius, radius, radius)
-        representative_ball.active_material = material
-        representative_ball.parent = atom_mesh_object
+            atom_mesh = bpy.data.meshes.new(f"{domain_name}_mesh")
+            atom_mesh.from_pydata(vertices, [], [])
+            atom_mesh.update()
+            atom_mesh_object = bpy.data.objects.new(f"{domain_name}_mesh_object", atom_mesh)
 
-        atom_mesh_object.instance_type = 'VERTS'
+            collection_domain = bpy.data.collections.new(domain_name)
+            collection_protein.children.link(collection_domain)
+            collection_domain.objects.link(atom_mesh_object)
 
-        # TODO (2024-11-14) Taken from Atomic Blender, check if it's necessary:
-        #
-        # Note the collection where the ball was placed into.
-        coll_all = representative_ball.users_collection
-        if len(coll_all) > 0:
-            coll_past = coll_all[0]
-        else:
-            coll_past = bpy.context.scene.collection
+            # UV balls
+            bpy.ops.mesh.primitive_uv_sphere_add(
+                segments=32,
+                ring_count=32,
+                align='WORLD',
+                enter_editmode=False,
+                location=local_center,
+                rotation=(0, 0, 0)
+            )
 
-        # Put the atom into the new collection 'atom' and ...
-        collection_protein.objects.link(representative_ball)
-        # ... unlink the atom from the other collection.
-        coll_past.objects.unlink(representative_ball)
+            representative_ball = bpy.context.view_layer.objects.active
+            representative_ball.hide_set(True)
+            representative_ball.scale = (radius, radius, radius)
+            representative_ball.active_material = material
+            representative_ball.parent = atom_mesh_object
 
-        return atom_mesh_object
+            atom_mesh_object.instance_type = 'VERTS'
+
+            # TODO (2024-11-14) Taken from Atomic Blender, check if it's necessary:
+            #
+            # Note the collection where the ball was placed into.
+            coll_all = representative_ball.users_collection
+            if len(coll_all) > 0:
+                coll_past = coll_all[0]
+            else:
+                coll_past = bpy.context.scene.collection
+
+            # Put the atom into the new collection 'atom' and ...
+            collection_protein.objects.link(representative_ball)
+            # ... unlink the atom from the other collection.
+            coll_past.objects.unlink(representative_ball)
+
+            atom_mesh_objects.append(atom_mesh_object)
+
+        return atom_mesh_objects
