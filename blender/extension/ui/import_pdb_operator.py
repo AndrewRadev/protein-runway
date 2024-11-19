@@ -67,6 +67,9 @@ class ImportPDBOperator(bpy.types.Operator):
             (0.8, 0.1, 0.1, 1), # red
             (0.1, 0.8, 0.1, 1), # green
             (0.1, 0.1, 0.8, 1), # blue
+            (0.8, 0.8, 0.1, 1), # yellow
+            (0.8, 0.3, 0.8, 1), # violet
+            (0.3, 0.8, 0.8, 1), # cyan
             (0.3, 0.3, 0.3, 1), # gray
         ]
         radius = 0.7
@@ -107,7 +110,7 @@ class ImportPDBOperator(bpy.types.Operator):
                 ring_count=32,
                 align='WORLD',
                 enter_editmode=False,
-                location=local_center,
+                location=(0, 0, 0),
                 rotation=(0, 0, 0)
             )
 
