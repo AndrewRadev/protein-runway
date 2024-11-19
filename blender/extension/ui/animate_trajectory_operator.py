@@ -4,6 +4,8 @@ import mathutils
 
 import MDAnalysis as mda
 
+from ..lib.segmentation import generate_domain_ranges
+
 TIMER_INTERVAL = 0.001
 
 
@@ -14,10 +16,9 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
     bl_label  = "Animate Trajectory"
 
     def __init__(self):
-        self.frames_inserted = 0
-
-        self._timer = None
-        self._updating = False
+        self.current_frame = 1
+        self.timer         = None
+        self.updating      = False
 
     def execute(self, context):
         """
@@ -29,15 +30,27 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
         """
         Called once when the operator is invoked
         """
-        atom_mesh_object = context.selected_objects[0]
-        self.mesh        = atom_mesh_object.data
+        atom_mesh_objects = context.selected_objects
+        self.meshes       = [o.data for o in atom_mesh_objects]
 
         pdb_path      = context.scene.ProteinRunway_pdb_path
         self.universe = mda.Universe(pdb_path)
 
+        # TODO (2024-11-19) Duplicates ImportPDBOperator
+        scene = context.scene
+        segmentations = scene.ProteinRunway_segmentations
+        if len(segmentations) > 0:
+            segmentation_index = scene.ProteinRunway_segmentation_index
+            selected_segmentation = segmentations[segmentation_index]
+
+            self.domain_regions = generate_domain_ranges(selected_segmentation.chopping)
+        else:
+            # One domain for the entire protein:
+            self.domain_regions = [[range(1, len(u.atoms))]]
+
         context.window_manager.modal_handler_add(self)
-        self._updating = False
-        self._timer = context.window_manager.event_timer_add(TIMER_INTERVAL, window=context.window)
+        self.updating = False
+        self.timer = context.window_manager.event_timer_add(TIMER_INTERVAL, window=context.window)
 
         return {'RUNNING_MODAL'}
 
@@ -47,51 +60,55 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
         inserted, until they're all done. A progress bar is updated inside the
         panel.
         """
-        if event.type == 'TIMER' and not self._updating:
-            self._updating = True
+        if event.type == 'TIMER' and not self.updating:
+            self.updating = True
 
             self.insert_frame()
 
-            progress = self.frames_inserted / len(self.universe.trajectory)
+            progress = self.current_frame / len(self.universe.trajectory)
             context.scene.ProteinRunway_progress = progress
 
-            self._updating = False
+            self.updating = False
 
-        if self.frames_inserted >= len(self.universe.trajectory):
+        if self.current_frame >= len(self.universe.trajectory):
             context.scene.ProteinRunway_progress = progress
             return self.finish(context)
 
         return {'PASS_THROUGH'}
 
     def finish(self, context):
-        context.window_manager.event_timer_remove(self._timer)
-        self._timer = None
+        context.window_manager.event_timer_remove(self.timer)
+        self.timer = None
         return {'FINISHED'}
 
     def insert_frame(self):
-        if self.frames_inserted == 0:
+        if self.current_frame == 0:
             # Snapshot first frame:
-            for v in self.mesh.vertices:
-                v.keyframe_insert('co', frame=1)
-            self.frames_inserted = 1
+            self.save_keyframes()
+            self.current_frame += 1
         else:
             next(self.universe.trajectory)
-            atoms = self.universe.select_atoms('name = CA')
+            all_atoms     = self.universe.select_atoms('name = CA')
+            global_center = all_atoms.center_of_mass()
 
-            center   = atoms.center_of_mass()
-            vertices = [p - center for p in atoms.positions]
+            for i, domain in enumerate(self.domain_regions):
+                atoms    = sum(all_atoms[region] for region in domain)
+                mesh     = self.meshes[i]
+                vertices = [p - global_center for p in atoms.positions]
 
-            # Perform the calculations using a BMesh:
-            bm = bmesh.new()
-            bm.from_mesh(self.mesh)
-            for i, v in enumerate(bm.verts):
-                v.co = mathutils.Vector(vertices[i])
-            bm.to_mesh(self.mesh)
-            bm.free()
+                # Perform the calculations using a BMesh:
+                bm = bmesh.new()
+                bm.from_mesh(mesh)
+                for i, v in enumerate(bm.verts):
+                    v.co = mathutils.Vector(vertices[i])
+                bm.to_mesh(mesh)
+                bm.free()
+                mesh.update()
 
-            self.mesh.update()
+            self.save_keyframes()
+            self.current_frame += 1
 
-            for v in self.mesh.vertices:
-                v.keyframe_insert('co', frame=(self.frames_inserted + 1))
-
-            self.frames_inserted += 1
+    def save_keyframes(self):
+        for mesh in self.meshes:
+            for v in mesh.vertices:
+                v.keyframe_insert('co', frame=self.current_frame)

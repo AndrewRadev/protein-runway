@@ -48,7 +48,7 @@ class ImportPDBOperator(bpy.types.Operator):
 
         for o in atom_mesh_objects:
             o.select_set(True)
-        # bpy.ops.protein_runway.animate_trajectory('INVOKE_DEFAULT')
+        bpy.ops.protein_runway.animate_trajectory('INVOKE_DEFAULT')
 
         # TODO (2024-11-14) This is messy and invasive, it might interfere with
         # multiple trajectories
