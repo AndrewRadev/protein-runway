@@ -77,9 +77,14 @@ class ImportPDBOperator(bpy.types.Operator):
         atom_mesh_objects = []
 
         for i, domain in enumerate(domain_regions):
-            color        = colors[i % len(colors)]
-            domain_name  = f"Domain{i + 1:02}"
-            atoms        = sum(all_atoms[region] for region in domain)
+            color       = colors[i % len(colors)]
+            domain_name = f"Domain{i + 1:02}"
+
+            atoms = sum(
+                all_atoms.select_atoms("resnum {}:{}".format(region.start, region.stop))
+                for region in domain
+            )
+
             local_center = atoms.center_of_mass() - global_center
             vertices     = [p - global_center for p in atoms.positions]
 

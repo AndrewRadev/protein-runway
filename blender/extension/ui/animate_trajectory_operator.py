@@ -92,7 +92,11 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
             global_center = all_atoms.center_of_mass()
 
             for i, domain in enumerate(self.domain_regions):
-                atoms    = sum(all_atoms[region] for region in domain)
+                atoms = sum(
+                    all_atoms.select_atoms("resnum {}:{}".format(region.start, region.stop))
+                    for region in domain
+                )
+
                 mesh     = self.meshes[i]
                 vertices = [p - global_center for p in atoms.positions]
 
