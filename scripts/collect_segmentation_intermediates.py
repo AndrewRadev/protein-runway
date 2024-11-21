@@ -37,12 +37,21 @@ def main():
             pass
             # Ignore for now, fails on these PDBs
         elif '/bio3d_geostas/' in path:
-            # Path is a directory with clusteringNN.json files:
-            for file in sorted(Path(path).glob('clustering*.json')):
+            # Path is a directory with clustering_kmeans_NN.json files:
+            for file in sorted(Path(path).glob('clustering_kmeans_*.json')):
                 k           = int(re.findall(r'\d\d', Path(file).stem)[0])
                 atom_groups = json.loads(Path(file).read_text())
                 chopping    = generate_geostas_chopping(atom_groups)
-                description = f"GeoStaS K-means with K={k}"
+                description = f"GeoStaS K-means, K={k}"
+
+                segmentations.append((index, description, len(atom_groups), chopping))
+                index += 1
+
+            for file in sorted(Path(path).glob('clustering_hier_*.json')):
+                k           = int(re.findall(r'\d\d', Path(file).stem)[0])
+                atom_groups = json.loads(Path(file).read_text())
+                chopping    = generate_geostas_chopping(atom_groups)
+                description = f"GeoStaS Hierarchical, K={k}"
 
                 segmentations.append((index, description, len(atom_groups), chopping))
                 index += 1
