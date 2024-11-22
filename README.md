@@ -47,6 +47,8 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Annoyingly, this will likely still show some dependency errors, but they don't seem to stop the pipeline from working.
+
 ## Run snakemake
 
 Before running any code, we need to activate the micromamba environment:
