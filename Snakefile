@@ -128,14 +128,25 @@ rule build_nmd_trajectory:
         python scripts/generate_nmd_traj.py {input.nmd_file} {output.traj_file}
         """
 
-rule segment_by_bio3d_geostas:
+rule generate_amsm:
     input:
         dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd"
     output:
-        clustering=directory("02_intermediate/bio3d_geostas/{protein_name}")
+        amsm_path="02_intermediate/bio3d_geostas/{protein_name}_amsm.csv"
     shell:
         """
-        Rscript scripts/segment_with_bio3d_geostas.R {input.dcd_file} {output.clustering}
+        Rscript scripts/generate_amsm.R {input.dcd_file} {output.amsm_path}
+        """
+
+rule segment_by_geostas:
+    input:
+        dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd",
+        amsm_path="02_intermediate/bio3d_geostas/{protein_name}_amsm.csv"
+    output:
+        clustering=directory("02_intermediate/bio3d_geostas/{protein_name}"),
+    shell:
+        """
+        Rscript scripts/segment_with_geostas.R {input.dcd_file} {input.amsm_path} {output.clustering}
         """
 
 rule collect_segmentation_intermediates:
