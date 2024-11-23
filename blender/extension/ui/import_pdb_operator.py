@@ -1,10 +1,22 @@
 from pathlib import Path
 
 import bpy
+import bmesh
 
 import MDAnalysis as mda
 
 from ..lib.segmentation import generate_domain_ranges
+
+COLORS = [
+    (1.0, 1.0, 1.0, 1), # white
+    (0.8, 0.1, 0.1, 1), # red
+    (0.1, 0.8, 0.1, 1), # green
+    (0.1, 0.1, 0.8, 1), # blue
+    (0.8, 0.8, 0.1, 1), # yellow
+    (0.8, 0.3, 0.8, 1), # violet
+    (0.3, 0.8, 0.8, 1), # cyan
+    (0.3, 0.3, 0.3, 1), # gray
+]
 
 
 class ImportPDBOperator(bpy.types.Operator):
@@ -17,9 +29,10 @@ class ImportPDBOperator(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        scene        = context.scene
-        pdb_path     = scene.ProteinRunway_pdb_path
-        protein_name = Path(pdb_path).stem
+        scene           = context.scene
+        pdb_path        = scene.ProteinRunway_pdb_path
+        add_convex_hull = scene.ProteinRunway_add_convex_hull
+        protein_name    = Path(pdb_path).stem
 
         if len(pdb_path) == 0:
             self.report({'WARNING'}, 'No PDB provided')
@@ -44,7 +57,7 @@ class ImportPDBOperator(bpy.types.Operator):
             # One domain for the entire protein:
             domain_regions = [[range(1, len(u.atoms))]]
 
-        atom_mesh_objects = self.draw_alpha_carbons(u, collection_protein, domain_regions)
+        atom_mesh_objects = self.draw_alpha_carbons(u, collection_protein, domain_regions, add_convex_hull)
 
         for o in atom_mesh_objects:
             o.select_set(True)
@@ -58,26 +71,16 @@ class ImportPDBOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def draw_alpha_carbons(self, universe, collection_protein, domain_regions):
+    def draw_alpha_carbons(self, universe, collection_protein, domain_regions, add_convex_hull):
         all_atoms     = universe.select_atoms('name = CA')
         global_center = all_atoms.center_of_mass()
 
-        colors = [
-            (1.0, 1.0, 1.0, 1), # white
-            (0.8, 0.1, 0.1, 1), # red
-            (0.1, 0.8, 0.1, 1), # green
-            (0.1, 0.1, 0.8, 1), # blue
-            (0.8, 0.8, 0.1, 1), # yellow
-            (0.8, 0.3, 0.8, 1), # violet
-            (0.3, 0.8, 0.8, 1), # cyan
-            (0.3, 0.3, 0.3, 1), # gray
-        ]
         radius = 0.7
 
         atom_mesh_objects = []
 
         for i, domain in enumerate(domain_regions):
-            color       = colors[i % len(colors)]
+            color       = COLORS[i % len(COLORS)]
             domain_name = f"Domain{i + 1:02}"
 
             atoms = sum(
@@ -109,7 +112,21 @@ class ImportPDBOperator(bpy.types.Operator):
             collection_protein.children.link(collection_domain)
             collection_domain.objects.link(atom_mesh_object)
 
-            # UV balls
+            if add_convex_hull:
+                # Create the convex hull
+                bm = bmesh.new()
+                bm.from_mesh(atom_mesh_object.data)
+                hull = bmesh.ops.convex_hull(bm, input=bm.verts)
+                bm.to_mesh(atom_mesh_object.data)
+                bm.free()
+
+                # We can choose to color the hull:
+                atom_mesh_object.active_material = material
+
+                # We can make the outer points invisible:
+                radius = 0
+
+            # Create a representative UV ball for the carbons
             bpy.ops.mesh.primitive_uv_sphere_add(
                 segments=32,
                 ring_count=32,
@@ -128,7 +145,7 @@ class ImportPDBOperator(bpy.types.Operator):
             atom_mesh_object.instance_type = 'VERTS'
 
             # TODO (2024-11-14) Taken from Atomic Blender, check if it's necessary:
-            #
+
             # Note the collection where the ball was placed into.
             coll_all = representative_ball.users_collection
             if len(coll_all) > 0:

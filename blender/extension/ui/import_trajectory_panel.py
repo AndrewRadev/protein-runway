@@ -39,11 +39,16 @@ class ImportTrajectoryPanel(bpy.types.Panel):
         layout.separator()
 
         row = layout.row()
+        row.prop(scene, "ProteinRunway_add_convex_hull")
+
+        layout.separator()
+
+        row = layout.row()
         row.operator(ImportPDBOperator.bl_idname)
 
         # Progress bar:
         row = self.layout.row()
-        progress = context.scene.ProteinRunway_progress
+        progress = scene.ProteinRunway_progress
         if progress == 0:
             text = "..."
         elif progress < 1:
