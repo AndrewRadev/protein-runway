@@ -14,7 +14,7 @@ def register():
     bpy.utils.register_class(SegmentationsUiList)
     bpy.utils.register_class(SegmentationItem)
 
-    # For PDB file input:
+    # PDB file input:
     bpy.types.Scene.ProteinRunway_pdb_path = bpy.props.StringProperty(
         name="File",
         description="File path of the PDB with an embedded trajectory to open",
@@ -23,7 +23,7 @@ def register():
         maxlen=0,
     )
 
-    # For segmentation TSV input:
+    # Segmentation TSV file input:
     def update_segmentation_path(self, value):
         self.ProteinRunway_segmentations.clear()
 
@@ -41,13 +41,18 @@ def register():
         set=update_segmentation_path
     )
 
-    # For array of segmentations serialized as JSON:
+    # Array of segmentations serialized as SegmentationItem properties
     bpy.types.Scene.ProteinRunway_segmentations      = bpy.props.StringProperty()
     bpy.types.Scene.ProteinRunway_segmentations      = bpy.props.CollectionProperty(type=SegmentationItem)
     bpy.types.Scene.ProteinRunway_segmentation_index = bpy.props.IntProperty()
 
-    # For progress bar:
+    # Progress bar progress value
     bpy.types.Scene.ProteinRunway_progress = bpy.props.FloatProperty()
+
+    # Whether to add a convex hull or not:
+    bpy.types.Scene.ProteinRunway_add_convex_hull = bpy.props.BoolProperty(
+        name="Add convex hull around domains"
+    )
 
 
 def unregister():
@@ -62,3 +67,4 @@ def unregister():
     del bpy.types.Scene.ProteinRunway_segmentations
     del bpy.types.Scene.ProteinRunway_segmentation_index
     del bpy.types.Scene.ProteinRunway_progress
+    del bpy.types.Scene.ProteinRunway_add_convex_hull
