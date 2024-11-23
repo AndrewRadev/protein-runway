@@ -47,8 +47,8 @@ def parse_chopping(chopping, method, k):
                 chopping = row['chopping']
                 break
         if chopping == 'NA':
-                print(f"Chopping not available for {method} with k={k}")
-                exit(1)
+            print(f"Chopping not available for {method} with k={k}")
+            exit(1)
         for i, domain in enumerate(chopping.split(',')):
             r = []
             subdomains = domain.split('_')
