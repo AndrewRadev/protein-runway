@@ -26,9 +26,8 @@ class ImportTrajectoryPanel(bpy.types.Panel):
         row.prop(scene, "ProteinRunway_segmentation_path")
 
         if len(scene.ProteinRunway_segmentations) > 0:
-            row = layout.row()
-            row.label(text="Available segmentations", icon="AREA_JOIN")
-            row.template_list(
+            layout.row().label(text="Available segmentations", icon="AREA_JOIN")
+            layout.row().template_list(
                 listtype_name=SegmentationsUiList.bl_idname,
                 list_id=SegmentationsUiList.bl_idname,
                 dataptr=scene,
