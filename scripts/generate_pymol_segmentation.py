@@ -41,11 +41,10 @@ def parse_chopping(chopping, method, k):
     segments = {}
     with open(tsv_file, 'r') as f:
         # Skip the header
-        next(f)
-        reader = csv.reader(f, delimiter='\t')
+        reader = csv.DictReader(f, delimiter='\t')
         for row in reader:
-            if methods[method] in row[1] and row[2] == k:
-                chopping = row[3]
+            if methods[method] in row['method'] and row['domain_count'] == k:
+                chopping = row['chopping']
                 break
         if chopping == 'NA':
                 print(f"Chopping not available for {method} with k={k}")
