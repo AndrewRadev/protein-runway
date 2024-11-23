@@ -112,7 +112,7 @@ rule build_pdbs:
         converter.write_static_file(output.static_pdb_file,   'protein')
         converter.write_trajectory_file(output.traj_pdb_file, 'protein')
 
-        converter.write_static_file(output.traj_ca_pdb_file,     'protein and name is CA')
+        converter.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
         converter.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
 
 rule build_nmd_file:
