@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import bpy
+import bmesh
 
 import MDAnalysis as mda
 
@@ -109,6 +110,13 @@ class ImportPDBOperator(bpy.types.Operator):
             collection_protein.children.link(collection_domain)
             collection_domain.objects.link(atom_mesh_object)
 
+            # Add a convex hull
+            bm = bmesh.new()
+            bm.from_mesh(atom_mesh_object.data)
+            hull = bmesh.ops.convex_hull(bm, input=bm.verts)
+            bm.to_mesh(atom_mesh_object.data)
+            bm.free()
+
             # UV balls
             bpy.ops.mesh.primitive_uv_sphere_add(
                 segments=32,
@@ -121,14 +129,14 @@ class ImportPDBOperator(bpy.types.Operator):
 
             representative_ball = bpy.context.view_layer.objects.active
             representative_ball.hide_set(True)
-            representative_ball.scale = (radius, radius, radius)
+            representative_ball.scale = (0, 0, 0)
             representative_ball.active_material = material
             representative_ball.parent = atom_mesh_object
 
             atom_mesh_object.instance_type = 'VERTS'
 
             # TODO (2024-11-14) Taken from Atomic Blender, check if it's necessary:
-            #
+
             # Note the collection where the ball was placed into.
             coll_all = representative_ball.users_collection
             if len(coll_all) > 0:
@@ -140,6 +148,8 @@ class ImportPDBOperator(bpy.types.Operator):
             collection_protein.objects.link(representative_ball)
             # ... unlink the atom from the other collection.
             coll_past.objects.unlink(representative_ball)
+
+            atom_mesh_object.active_material = material
 
             atom_mesh_objects.append(atom_mesh_object)
 
