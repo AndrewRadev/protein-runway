@@ -27,15 +27,16 @@ method = sys.argv[3]
 k = sys.argv[4]
 output_file = sys.argv[5] if len(sys.argv) > 5 else (f'{Path(pdb_file).stem}.pml')
 
+
 def parse_chopping(chopping, method, k):
     """
-    Columns: 'index'	'method'	'domain_count'	'chopping'
+    Columns: 'index', 'method', 'domain_count', 'chopping'
     Example chopping format: '1-100,101-200,201-300_301-400,401-500'
     Method choices: 'chainsaw', 'k_geostas', 'h_geostas'
-    k choices: 1-10
+    k choices: 2-10
     """
-    methods = {'chainsaw': 'chainsaw', 
-               'k_geostas': 'GeoStaS K-means', 
+    methods = {'chainsaw': 'chainsaw',
+               'k_geostas': 'GeoStaS K-means',
                'h_geostas': 'GeoStaS Hierarchical'}
     segments = {}
     with open(tsv_file, 'r') as f:
@@ -47,8 +48,8 @@ def parse_chopping(chopping, method, k):
                 chopping = row[3]
                 break
         if chopping == 'NA':
-                    print(f"Chopping not available for {method} with k={k}")
-                    exit(1)
+                print(f"Chopping not available for {method} with k={k}")
+                exit(1)
         for i, domain in enumerate(chopping.split(',')):
             r = []
             subdomains = domain.split('_')
@@ -75,7 +76,7 @@ def generate_pymol_script(pdb_file, segmentation, output_file):
         f.write(f"disable {Path(pdb_file).stem}\n")
         f.write(f"enable {Path(pdb_file).stem}\n")
 
-    
+
 print(f"Generating PyMOL script for {pdb_file}")
 print(f"Reading segmentation from {tsv_file}")
 segmentation = parse_chopping(tsv_file, method, k)
@@ -83,5 +84,3 @@ print(f"Segmentation: {segmentation}")
 print(f"Writing PyMOL script to {output_file}")
 generate_pymol_script(pdb_file, segmentation, output_file)
 exit(0)
-    
-
