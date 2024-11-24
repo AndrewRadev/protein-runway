@@ -1,4 +1,7 @@
 from snakemake.io import glob_wildcards
+import MDAnalysis as mda
+
+from lib.trajectory_conversion import TrajectoryConverter
 from lib.segmentation_parsers import *
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
@@ -103,11 +106,15 @@ rule build_pdbs:
         traj_ca_pdb_file="02_intermediate/pdb/{protein_name}.with_traj.ca.pdb",
         traj_ca_dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd",
         static_pdb_file="02_intermediate/pdb/{protein_name}.static.pdb"
-    shell: """
-        python scripts/convert_traj_to_pdbs.py \
-            {wildcards.protein_name} {input.topology} {input.trajectory} \
-            02_intermediate/pdb/
-    """
+    run:
+        u = mda.Universe(input.topology, input.trajectory)
+        converter = TrajectoryConverter(u)
+
+        converter.write_static_file(output.static_pdb_file,   'protein')
+        converter.write_trajectory_file(output.traj_pdb_file, 'protein')
+
+        converter.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
+        converter.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
 
 rule build_nmd_file:
     input:
