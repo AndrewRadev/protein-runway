@@ -131,10 +131,13 @@ rule build_nmd_trajectory:
         nmd_file="02_intermediate/pca/{protein_name}.nmd",
     output:
         traj_file="03_output/{protein_name}.nmd_traj.pdb"
-    shell:
-        """
-        python scripts/generate_nmd_traj.py {input.nmd_file} {output.traj_file}
-        """
+    run:
+        nmd_traj = NormalModes(nmd_file, traj_file)
+        nmd_traj.parse_nmd_file()
+        nmd_traj.validate_modes()
+        nmd_traj.generate_trajectory()
+        nmd_traj.write_trajectory()
+
 
 rule generate_amsm:
     input:
