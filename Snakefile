@@ -1,4 +1,5 @@
 from snakemake.io import glob_wildcards
+from lib.segmentation_parser import *
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
 
@@ -156,9 +157,36 @@ rule collect_segmentation_intermediates:
         bio3d_geostas="02_intermediate/bio3d_geostas/{protein_name}/"
     output:
         segmentation="03_output/{protein_name}.segmentation.tsv"
-    shell:
-        """
-        python scripts/collect_segmentation_intermediates.py \
-            {input.chainsaw} {input.merizo} {input.bio3d_geostas} \
-            {output.segmentation}
-        """
+    run:
+        #should change this to loop through all input files without manually instantiating somehow?
+        chainsaw_input = ChainsawParser(input.chainsaw)
+        merizo_input = MerizoParser(input.merizo)
+        geostas_input = GeostasParser(input.bio3d_geostas)
+
+        #skipping merizo for now
+        input_files = chainsaw_input, geostas_input
+        segmentations = []
+        index = 1
+
+        for seg_object in input_files:
+            if type(seg_object) == GeostasParser:
+                hier_and_kmeans = parse(seg_object)
+                for k in hier_and_kmeans:
+                    if self.k != '':
+                        segmentations.extend(index, self.k, seg_object.parse())
+                    else:
+                        segmentations.extend(index, self.h, seg_object.parse())
+                    index += 1
+            else:
+                segmentations.extend(index, seg_object.name, seg_object.parse())
+                index += 1
+
+        with open(output.segmentation, 'w') as f:
+        writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(columns)
+        for segmentation in segmentations:
+            writer.writerow(segmentation)
+        
+
+
+
