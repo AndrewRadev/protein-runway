@@ -166,6 +166,7 @@ rule collect_segmentation_intermediates:
         #skipping merizo for now
         input_files = chainsaw_input, geostas_input
         segmentations = []
+        columns = ['index', 'method', 'domain_count', 'chopping']
         index = 1
 
         for seg_object in input_files:
