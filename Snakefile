@@ -1,5 +1,5 @@
 from snakemake.io import glob_wildcards
-from lib.segmentation_parser import *
+from lib.segmentation_parsers import *
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
 
@@ -183,10 +183,10 @@ rule collect_segmentation_intermediates:
                 index += 1
 
         with open(output.segmentation, 'w') as f:
-        writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(columns)
-        for segmentation in segmentations:
-            writer.writerow(segmentation)
+            writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(columns)
+            for segmentation in segmentations:
+                writer.writerow(segmentation)
         
 
 
