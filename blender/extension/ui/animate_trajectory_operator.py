@@ -88,17 +88,41 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
             self.current_frame += 1
         else:
             next(self.universe.trajectory)
+
             all_atoms     = self.universe.select_atoms('name = CA')
+            all_resnums   = {a.resnum for a in all_atoms.atoms}
             global_center = all_atoms.center_of_mass()
+            seen_resnums  = set()
 
             for i, domain in enumerate(self.domain_regions):
-                atoms = sum(
+                atom_group = sum(
                     all_atoms.select_atoms("resnum {}:{}".format(region.start, region.stop))
                     for region in domain
                 )
+                seen_resnums |= {a.resnum for a in atom_group.atoms}
 
                 mesh     = self.meshes[i]
-                vertices = [p - global_center for p in atoms.positions]
+                vertices = [p - global_center for p in atom_group.positions]
+
+                # Perform the calculations using a BMesh:
+                bm = bmesh.new()
+                bm.from_mesh(mesh)
+                for i, v in enumerate(bm.verts):
+                    v.co = mathutils.Vector(vertices[i])
+                bm.to_mesh(mesh)
+                bm.free()
+                mesh.update()
+
+            # Add leftover atoms, if any:
+            unseen_resnums = all_resnums - seen_resnums
+            if len(unseen_resnums) > 0:
+                atom_group = sum(
+                    all_atoms.select_atoms("resnum {}".format(str(resnum)))
+                    for resnum in unseen_resnums
+                )
+
+                mesh     = self.meshes[len(self.domain_regions)]
+                vertices = [p - global_center for p in atom_group.positions]
 
                 # Perform the calculations using a BMesh:
                 bm = bmesh.new()
