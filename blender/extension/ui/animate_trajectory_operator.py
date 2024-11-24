@@ -105,13 +105,7 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
                 vertices = [p - global_center for p in atom_group.positions]
 
                 # Perform the calculations using a BMesh:
-                bm = bmesh.new()
-                bm.from_mesh(mesh)
-                for i, v in enumerate(bm.verts):
-                    v.co = mathutils.Vector(vertices[i])
-                bm.to_mesh(mesh)
-                bm.free()
-                mesh.update()
+                self.update_mesh_coordinates(mesh, vertices)
 
             # Add leftover atoms, if any:
             unseen_resnums = all_resnums - seen_resnums
@@ -124,17 +118,22 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
                 mesh     = self.meshes[len(self.domain_regions)]
                 vertices = [p - global_center for p in atom_group.positions]
 
-                # Perform the calculations using a BMesh:
-                bm = bmesh.new()
-                bm.from_mesh(mesh)
-                for i, v in enumerate(bm.verts):
-                    v.co = mathutils.Vector(vertices[i])
-                bm.to_mesh(mesh)
-                bm.free()
-                mesh.update()
+                self.update_mesh_coordinates(mesh, vertices)
 
             self.save_keyframes()
             self.current_frame += 1
+
+    def update_mesh_coordinates(self, mesh, vertices):
+        # Perform the calculations using a BMesh:
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+        for i, v in enumerate(bm.verts):
+            v.co = mathutils.Vector(vertices[i])
+
+        # Write the bmesh to the real mesh
+        bm.to_mesh(mesh)
+        bm.free()
+        mesh.update()
 
     def save_keyframes(self):
         for mesh in self.meshes:
