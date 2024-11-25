@@ -175,26 +175,4 @@ rule collect_segmentation_intermediates:
         geostas_input = GeostasParser(input.bio3d_geostas)
 
         #skipping merizo for now
-        input_files = chainsaw_input, geostas_input
-        segmentations = []
-        columns = ['index', 'method', 'domain_count', 'chopping']
-        index = 1
-
-        for seg_object in input_files:
-            if type(seg_object) == GeostasParser:
-                hier_and_kmeans = parse(seg_object)
-                for k in hier_and_kmeans:
-                    if self.k != '':
-                        segmentations.extend(index, self.k, seg_object.parse())
-                    else:
-                        segmentations.extend(index, self.h, seg_object.parse())
-                    index += 1
-            else:
-                segmentations.extend(index, seg_object.name, seg_object.parse())
-                index += 1
-
-        with open(output.segmentation, 'w') as f:
-            writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(columns)
-            for segmentation in segmentations:
-                writer.writerow(segmentation)
+        write_segmentations([chainsaw_input, geostas_input], output.segmentation)
