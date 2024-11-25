@@ -1,7 +1,7 @@
 from snakemake.io import glob_wildcards
 import MDAnalysis as mda
 
-from lib.trajectory_conversion import TrajectoryConverter
+from lib.trajectory_writer import TrajectoryWriter
 from lib.generate_nmd_traj import NormalModes
 from lib.segmentation_parsers import *
 
@@ -109,13 +109,13 @@ rule build_pdbs:
         static_pdb_file="02_intermediate/pdb/{protein_name}.static.pdb"
     run:
         u = mda.Universe(input.topology, input.trajectory)
-        converter = TrajectoryConverter(u)
+        writer = TrajectoryWriter(u)
 
-        converter.write_static_file(output.static_pdb_file,   'protein')
-        converter.write_trajectory_file(output.traj_pdb_file, 'protein')
+        writer.write_static_file(output.static_pdb_file,   'protein')
+        writer.write_trajectory_file(output.traj_pdb_file, 'protein')
 
-        converter.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
-        converter.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
+        writer.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
+        writer.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
 
 rule build_nmd_file:
     input:
@@ -135,8 +135,10 @@ rule build_nmd_trajectory:
     run:
         nmd_traj = NormalModes()
         nmd_traj.parse_nmd_file(input.nmd_file)
-        nmd_traj.generate_trajectory()
-        nmd_traj.write_trajectory(output.traj_file)
+        mda_universe = nmd_traj.generate_trajectory()
+
+        writer = TrajectoryWriter(mda_universe)
+        writer.write_trajectory_file(output.traj_file)
 
 rule generate_amsm:
     input:
@@ -196,7 +198,3 @@ rule collect_segmentation_intermediates:
             writer.writerow(columns)
             for segmentation in segmentations:
                 writer.writerow(segmentation)
-
-
-
-

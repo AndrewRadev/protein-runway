@@ -1,7 +1,4 @@
-import sys
-import os
 import itertools
-from pathlib import Path
 import MDAnalysis as mda
 from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
@@ -21,7 +18,6 @@ class NormalModes:
         self.resnames = None
         self.resids = None
         self.modes = []
-        self.trajectory = []
 
     def parse_nmd_file(self, nmd_file):
         """
@@ -63,23 +59,20 @@ class NormalModes:
         Generate the trajectory based on the modes.
         """
         coordinates = self.coordinates.copy()
+        trajectory = []
 
         # Forward trajectory
         for _ in range(0, self.frame_count // 2):
             for _, vectors in self.modes[:self.mode_count]:
                 coordinates = coordinates + vectors
-            self.trajectory.append(coordinates)
+            trajectory.append(coordinates)
 
         # Backward trajectory
         for _ in range(0, self.frame_count // 2):
             for _, vectors in self.modes[:self.mode_count]:
                 coordinates = coordinates - vectors
-            self.trajectory.append(coordinates)
+            trajectory.append(coordinates)
 
-    def write_trajectory(self, output_file):
-        """
-        Write the trajectory to a PDB file.
-        """
         n_atoms = self.coordinates.shape[0]
         u = mda.Universe.empty(
             n_atoms=n_atoms,
@@ -92,8 +85,9 @@ class NormalModes:
         u.add_TopologyAttr('names', self.atomnames)
         u.add_TopologyAttr('resids', self.resids)
         u.add_TopologyAttr('resnames', self.resnames)
-        u.load_new(np.array(self.trajectory), format=MDAMemoryReader)
-        u.atoms.write(output_file, frames='all')
+        u.load_new(np.array(trajectory), format=MDAMemoryReader)
+
+        return u
 
     def _validate_modes(self):
         """
@@ -116,5 +110,3 @@ class NormalModes:
             if strict and len(batch) != n:
                 raise ValueError('batched(): incomplete batch')
             yield batch
-
-
