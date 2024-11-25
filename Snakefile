@@ -2,6 +2,7 @@ from snakemake.io import glob_wildcards
 import MDAnalysis as mda
 
 from lib.trajectory_conversion import TrajectoryConverter
+from lib.generate_nmd_traj import NormalModes
 from lib.segmentation_parsers import *
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
@@ -132,12 +133,10 @@ rule build_nmd_trajectory:
     output:
         traj_file="03_output/{protein_name}.nmd_traj.pdb"
     run:
-        nmd_traj = NormalModes(nmd_file, traj_file)
-        nmd_traj.parse_nmd_file()
-        nmd_traj.validate_modes()
+        nmd_traj = NormalModes()
+        nmd_traj.parse_nmd_file(input.nmd_file)
         nmd_traj.generate_trajectory()
-        nmd_traj.write_trajectory()
-
+        nmd_traj.write_trajectory(output.traj_file)
 
 rule generate_amsm:
     input:
@@ -197,7 +196,7 @@ rule collect_segmentation_intermediates:
             writer.writerow(columns)
             for segmentation in segmentations:
                 writer.writerow(segmentation)
-        
+
 
 
 

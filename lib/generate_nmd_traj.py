@@ -8,12 +8,10 @@ import numpy as np
 
 
 class NormalModes:
-    def __init__(self, nmd_file, output_file, frame_count=100, magnitude_scale=0.1, mode_count=1):
+    def __init__(self, frame_count=100, magnitude_scale=0.1, mode_count=1):
         """
         NormalModes object with input parameters.
         """
-        self.nmd_file = nmd_file
-        self.output_file = output_file
         self.frame_count = frame_count
         self.magnitude_scale = magnitude_scale
         self.mode_count = mode_count
@@ -25,11 +23,11 @@ class NormalModes:
         self.modes = []
         self.trajectory = []
 
-    def parse_nmd_file(self):
+    def parse_nmd_file(self, nmd_file):
         """
         Parse the NMD file and extract atomnames, resnames, resids, coordinates, and modes.
         """
-        with open(self.nmd_file) as f:
+        with open(nmd_file) as f:
             for line in f:
                 line = line.strip()
                 section, _, line = line.partition(' ')
@@ -58,12 +56,7 @@ class NormalModes:
 
                     self.modes.append((mode, vectors))
 
-    def validate_modes(self):
-        """
-        Ensure that the modes' shapes match the coordinates.
-        """
-        for _, vectors in self.modes:
-            assert vectors.shape == self.coordinates.shape
+        self._validate_modes()
 
     def generate_trajectory(self):
         """
@@ -83,7 +76,7 @@ class NormalModes:
                 coordinates = coordinates - vectors
             self.trajectory.append(coordinates)
 
-    def write_trajectory(self):
+    def write_trajectory(self, output_file):
         """
         Write the trajectory to a PDB file.
         """
@@ -100,7 +93,14 @@ class NormalModes:
         u.add_TopologyAttr('resids', self.resids)
         u.add_TopologyAttr('resnames', self.resnames)
         u.load_new(np.array(self.trajectory), format=MDAMemoryReader)
-        u.atoms.write(self.output_file, frames='all')
+        u.atoms.write(output_file, frames='all')
+
+    def _validate_modes(self):
+        """
+        Ensure that the modes' shapes match the coordinates.
+        """
+        for _, vectors in self.modes:
+            assert vectors.shape == self.coordinates.shape
 
     @staticmethod
     def _batched(iterable, n, *, strict=False):
