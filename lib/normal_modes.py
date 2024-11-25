@@ -1,7 +1,8 @@
-import itertools
 import MDAnalysis as mda
 from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
+
+import lib.util as util
 
 
 class NormalModes:
@@ -39,7 +40,7 @@ class NormalModes:
 
                 elif section == 'coordinates':
                     coords = (float(c) for c in line.split(' '))
-                    self.coordinates = np.array(list(self._batched(coords, n=3, strict=True)))
+                    self.coordinates = np.array(self._group_in_threes(coords))
 
                 elif section == 'mode':
                     mode, _, line = line.partition(' ')
@@ -48,7 +49,7 @@ class NormalModes:
 
                     magnitude = float(magnitude) * self.magnitude_scale
                     vector_coordinates = (magnitude * float(vc) for vc in vector_coordinates)
-                    vectors = np.array(list(self._batched(vector_coordinates, n=3, strict=True)))
+                    vectors = np.array(self._group_in_threes(vector_coordinates))
 
                     self.modes.append((mode, vectors))
 
@@ -96,17 +97,5 @@ class NormalModes:
         for _, vectors in self.modes:
             assert vectors.shape == self.coordinates.shape
 
-    @staticmethod
-    def _batched(iterable, n, *, strict=False):
-        """
-        Batch elements from the iterable into tuples of length n.
-        """
-        if n < 1:
-            raise ValueError('n must be at least one')
-
-        iterator = iter(iterable)
-
-        while batch := tuple(itertools.islice(iterator, n)):
-            if strict and len(batch) != n:
-                raise ValueError('batched(): incomplete batch')
-            yield batch
+    def _group_in_threes(self, flat_coordinates):
+        return list(util.batched(flat_coordinates, n=3, strict=True))

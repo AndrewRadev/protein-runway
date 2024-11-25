@@ -2,7 +2,7 @@ from snakemake.io import glob_wildcards
 import MDAnalysis as mda
 
 from lib.trajectory_writer import TrajectoryWriter
-from lib.generate_nmd_traj import NormalModes
+from lib.normal_modes import NormalModes
 from lib.segmentation_parsers import *
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
