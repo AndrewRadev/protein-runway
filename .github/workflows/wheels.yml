@@ -25,13 +25,13 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
           cd blender/extension
-          Compress-Archive \
-            -Destination ../../blender-extension-${{ runner.os }}_${{ runner.arch }}-${{ github.ref_name }}.zip \
-            -Path \
-              wheels/* \
-              __init__.py \
-              lib/*.py \
-              ui/*.py \
+          Compress-Archive `
+            -Destination ../../blender-extension-${{ runner.os }}_${{ runner.arch }}-${{ github.ref_name }}.zip `
+            -Path `
+              wheels/* `
+              __init__.py `
+              lib/*.py `
+              ui/*.py `
               blender_manifest.toml
 
       - name: Create zip file with extension (non-Windows)
