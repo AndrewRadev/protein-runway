@@ -21,15 +21,15 @@ jobs:
           cd blender/extension/
           pip wheel MDAnalysis -w wheels
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: blender-extension-${{ runner.os }}_${{ runner.arch }}-${{ github.ref_name }}
-          path: ./blender/extension
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: ./
-          merge-multiple: true
+      - name: Create zip file with extension
+        run: |
+          cd blender/extension
+          zip -r ../../blender-extension-${{ runner.os }}_${{ runner.arch }}-${{ github.ref_name }}.zip \
+            wheels \
+            __init__.py \
+            lib/*.py \
+            ui/*.py \
+            blender_manifest.toml
 
       - name: Release
         uses: softprops/action-gh-release@v1
