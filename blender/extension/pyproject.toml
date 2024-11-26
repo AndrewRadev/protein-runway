@@ -1,5 +1,0 @@
-[project]
-name = "protein-runway-blender-extension"
-dependencies = [
-  "MDAnalysis>=2.7.0",
-]
