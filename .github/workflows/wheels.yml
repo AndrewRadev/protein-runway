@@ -26,6 +26,11 @@ jobs:
           name: blender-extension-${{ runner.os }}_${{ runner.arch }}-${{ github.ref_name }}
           path: ./blender/extension
 
+      - uses: actions/download-artifact@v4
+        with:
+          path: ./
+          merge-multiple: true
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
