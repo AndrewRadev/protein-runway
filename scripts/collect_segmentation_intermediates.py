@@ -29,13 +29,19 @@ def main():
 
     for path in input_files:
         if '/chainsaw/' in path:
-            rows = read_csv_rows(path, delimiter='\t')
+            rows = read_csv_as_dicts(path, delimiter='\t')
             data = rows[0]
-            segmentations.append((index, "chainsaw", data['ndom'], data['chopping']))
+            segmentations.append((index, "Chainsaw", data['ndom'], data['chopping']))
             index += 1
         elif '/merizo/' in path:
-            pass
-            # Ignore for now, fails on these PDBs
+            rows = read_csv_as_arrays(path, delimiter='\t')
+            data = rows[0]
+
+            domain_count = data[4]
+            chopping     = data[7]
+
+            segmentations.append((index, "Merizo", domain_count, chopping))
+            index += 1
         elif '/bio3d_geostas/' in path:
             # Path is a directory with clustering_kmeans_NN.json files:
             for file in sorted(Path(path).glob('clustering_kmeans_*.json')):
@@ -67,9 +73,15 @@ def main():
             writer.writerow(segmentation)
 
 
-def read_csv_rows(path, **kwargs):
+def read_csv_as_dicts(path, **kwargs):
     with open(path) as f:
         reader = csv.DictReader(f, **kwargs)
+        return [row for row in reader]
+
+
+def read_csv_as_arrays(path, **kwargs):
+    with open(path) as f:
+        reader = csv.reader(f, **kwargs)
         return [row for row in reader]
 
 
