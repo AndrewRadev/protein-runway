@@ -123,10 +123,6 @@ rule build_nmd_file:
         pdb_file="02_intermediate/pdb/{protein_name}.with_traj.pdb",
     output:
         nmd_file="02_intermediate/pca/{protein_name}.nmd"
-    shell:
-        """
-        python scripts/build_nmd_file.py {input.pdb_file} {output.nmd_file}
-        """
     run:
         nmd_traj = NormalModes()
         nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file)
