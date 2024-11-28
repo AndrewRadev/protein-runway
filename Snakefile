@@ -1,5 +1,6 @@
 from snakemake.io import glob_wildcards
 import MDAnalysis as mda
+from prody import writeNMD
 
 from lib.trajectory_writer import TrajectoryWriter
 from lib.normal_modes import NormalModes
@@ -126,6 +127,10 @@ rule build_nmd_file:
         """
         python scripts/build_nmd_file.py {input.pdb_file} {output.nmd_file}
         """
+    run:
+        nmd_traj = NormalModes()
+        nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file)
+        writeNMD(output.nmd_file, nmd_traj.eda_ensemble[:10], nmd_traj.structure)
 
 rule build_nmd_trajectory:
     input:
@@ -133,6 +138,9 @@ rule build_nmd_trajectory:
     output:
         traj_file="03_output/{protein_name}.nmd_traj.pdb"
     run:
+        #doesn't seem like good practice to refer to variables from a previous rule,
+        #  but it also seems weird to me to now have two instantiated NormalModes objects
+        #  that aren't connected, or perhaps that doesn't matter for the snakemake logic?
         nmd_traj = NormalModes()
         nmd_traj.parse_nmd_file(input.nmd_file)
         mda_universe = nmd_traj.generate_trajectory()

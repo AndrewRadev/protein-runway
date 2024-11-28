@@ -1,6 +1,8 @@
 import MDAnalysis as mda
 from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
+from pathlib import Path
+from prody import parseDCD, parsePDB, writeNMD, EDA, Ensemble
 
 import lib.util as util
 
@@ -19,6 +21,28 @@ class NormalModes:
         self.resnames = None
         self.resids = None
         self.modes = []
+
+        self.protein_name = ''
+        self.eda_ensemble = None
+        self.structure = None
+
+    def generate_nmd_from_pdb(self, pdb_file):
+        self.protein_name = Path(pdb_file).stem
+
+        # Limit to alpha carbons to keep a low memory profile
+        self.structure = parsePDB(self.pdb_file).select('calpha')
+
+        ensemble = Ensemble('%s Structure' % self.protein_name)
+
+        ensemble.addCoordset(self.structure)
+        ensemble.setCoords(self.structure)
+        ensemble.setAtoms(self.structure)
+        ensemble.superpose()
+
+        self.eda_ensemble = EDA('%s EDA' % self.protein_name)
+        self.eda_ensemble.buildCovariance(self.ensemble)
+        self.eda_ensemble.calcModes(n_modes=10)
+
 
     def parse_nmd_file(self, nmd_file):
         """
