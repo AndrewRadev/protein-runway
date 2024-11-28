@@ -1,7 +1,8 @@
 from snakemake.io import glob_wildcards
 import MDAnalysis as mda
 
-from lib.trajectory_conversion import TrajectoryConverter
+from lib.trajectory_writer import TrajectoryWriter
+from lib.normal_modes import NormalModes
 from lib.segmentation_parsers import *
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
@@ -108,13 +109,13 @@ rule build_pdbs:
         static_pdb_file="02_intermediate/pdb/{protein_name}.static.pdb"
     run:
         u = mda.Universe(input.topology, input.trajectory)
-        converter = TrajectoryConverter(u)
+        writer = TrajectoryWriter(u)
 
-        converter.write_static_file(output.static_pdb_file,   'protein')
-        converter.write_trajectory_file(output.traj_pdb_file, 'protein')
+        writer.write_static_file(output.static_pdb_file,   'protein')
+        writer.write_trajectory_file(output.traj_pdb_file, 'protein')
 
-        converter.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
-        converter.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
+        writer.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
+        writer.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
 
 rule build_nmd_file:
     input:
@@ -132,12 +133,12 @@ rule build_nmd_trajectory:
     output:
         traj_file="03_output/{protein_name}.nmd_traj.pdb"
     run:
-        nmd_traj = NormalModes(nmd_file, traj_file)
-        nmd_traj.parse_nmd_file()
-        nmd_traj.validate_modes()
-        nmd_traj.generate_trajectory()
-        nmd_traj.write_trajectory()
+        nmd_traj = NormalModes()
+        nmd_traj.parse_nmd_file(input.nmd_file)
+        mda_universe = nmd_traj.generate_trajectory()
 
+        writer = TrajectoryWriter(mda_universe)
+        writer.write_trajectory_file(output.traj_file)
 
 rule generate_amsm:
     input:
@@ -174,30 +175,4 @@ rule collect_segmentation_intermediates:
         geostas_input = GeostasParser(input.bio3d_geostas)
 
         #skipping merizo for now
-        input_files = chainsaw_input, geostas_input
-        segmentations = []
-        columns = ['index', 'method', 'domain_count', 'chopping']
-        index = 1
-
-        for seg_object in input_files:
-            if type(seg_object) == GeostasParser:
-                hier_and_kmeans = parse(seg_object)
-                for k in hier_and_kmeans:
-                    if self.k != '':
-                        segmentations.extend(index, self.k, seg_object.parse())
-                    else:
-                        segmentations.extend(index, self.h, seg_object.parse())
-                    index += 1
-            else:
-                segmentations.extend(index, seg_object.name, seg_object.parse())
-                index += 1
-
-        with open(output.segmentation, 'w') as f:
-            writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(columns)
-            for segmentation in segmentations:
-                writer.writerow(segmentation)
-        
-
-
-
+        write_segmentations([chainsaw_input, geostas_input], output.segmentation)

@@ -1,48 +1,63 @@
-from abc import ABC, abstractmethod
-import sys
-import os
+from abc import abstractmethod
 import csv
 import json
 import re
 from pathlib import Path
 
+
+def write_segmentations(seg_objects, output_file):
+    segmentations = []
+    columns = ['index', 'method', 'domain_count', 'chopping']
+    index = 1
+
+    for seg_object in seg_objects:
+        for method, domain_count, chopping in seg_object.parse():
+            segmentations.append((index, method, domain_count, chopping))
+            index += 1
+
+    with open(output_file, 'w') as f:
+        writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(columns)
+
+        for segmentation in segmentations:
+            writer.writerow(segmentation)
+
+
 class SegmentationParser:
     def __init__(self, path):
         self.path = path
-    
+
     @abstractmethod
     def parse():
         raise NotImplementedError
 
-class ChainsawParser(SegmentationParser):
 
+class ChainsawParser(SegmentationParser):
     def __init__(self, path):
         super().__init__(path)
-        self.name = 'chainsaw'
 
     def read_csv_rows(self, path, **kwargs):
         with open(self.path) as f:
             reader = csv.DictReader(f, **kwargs)
             return [row for row in reader]
-    
+
     def parse(self):
         rows = self.read_csv_rows(self.path, delimiter='\t')
         data = rows[0]
-        return data['ndom'], data['chopping']
-    
-class MerizoParser(SegmentationParser):
+        segmentation = ("Chainsaw", data['ndom'], data['chopping'])
 
+        return [segmentation]
+
+
+class MerizoParser(SegmentationParser):
     def __init__(self, path):
         super().__init__(path)
-        self.name = 'merizo'
+
 
 class GeostasParser(SegmentationParser):
-
     def __init__(self, path):
         super().__init__(path)
-        self.k = ''
-        self.h = ''
-        
+
     def generate_geostas_chopping(self, atom_groups):
         """
         Input: [[1, 2, 3], [10, 11, 20, 21], ...]
@@ -73,22 +88,24 @@ class GeostasParser(SegmentationParser):
             group_descriptions.append('_'.join([f"{start}-{end}" for start, end in groupings[i]]))
 
         return ','.join(group_descriptions)
-    
+
     def parse(self):
+        segmentations = []
+
         for file in sorted(Path(self.path).glob('clustering_kmeans_*.json')):
             k           = int(re.findall(r'\d\d', Path(file).stem)[0])
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self.generate_geostas_chopping(atom_groups)
-            self.k = f"GeoStaS K-means, K={k}"
+            method      = f"GeoStaS K-means, K={k}"
 
-            return len(atom_groups), chopping
-        
+            segmentations.append((method, len(atom_groups), chopping))
+
         for file in sorted(Path(self.path).glob('clustering_hier_*.json')):
-                k           = int(re.findall(r'\d\d', Path(file).stem)[0])
-                atom_groups = json.loads(Path(file).read_text())
-                chopping    = self.generate_geostas_chopping(atom_groups)
-                self.h = f"GeoStaS Hierarchical, K={k}"
+            k           = int(re.findall(r'\d\d', Path(file).stem)[0])
+            atom_groups = json.loads(Path(file).read_text())
+            chopping    = self.generate_geostas_chopping(atom_groups)
+            method      = f"GeoStaS Hierarchical, K={k}"
 
-                return len(atom_groups), chopping
-                
-            
+            segmentations.append((method, len(atom_groups), chopping))
+
+        return segmentations

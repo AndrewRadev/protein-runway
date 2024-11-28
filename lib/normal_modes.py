@@ -1,19 +1,15 @@
-import sys
-import os
-import itertools
-from pathlib import Path
 import MDAnalysis as mda
 from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
 
+import lib.util as util
+
 
 class NormalModes:
-    def __init__(self, nmd_file, output_file, frame_count=100, magnitude_scale=0.1, mode_count=1):
+    def __init__(self, frame_count=100, magnitude_scale=0.1, mode_count=1):
         """
         NormalModes object with input parameters.
         """
-        self.nmd_file = nmd_file
-        self.output_file = output_file
         self.frame_count = frame_count
         self.magnitude_scale = magnitude_scale
         self.mode_count = mode_count
@@ -23,13 +19,12 @@ class NormalModes:
         self.resnames = None
         self.resids = None
         self.modes = []
-        self.trajectory = []
 
-    def parse_nmd_file(self):
+    def parse_nmd_file(self, nmd_file):
         """
         Parse the NMD file and extract atomnames, resnames, resids, coordinates, and modes.
         """
-        with open(self.nmd_file) as f:
+        with open(nmd_file) as f:
             for line in f:
                 line = line.strip()
                 section, _, line = line.partition(' ')
@@ -45,7 +40,7 @@ class NormalModes:
 
                 elif section == 'coordinates':
                     coords = (float(c) for c in line.split(' '))
-                    self.coordinates = np.array(list(self._batched(coords, n=3, strict=True)))
+                    self.coordinates = np.array(self._group_in_threes(coords))
 
                 elif section == 'mode':
                     mode, _, line = line.partition(' ')
@@ -54,39 +49,31 @@ class NormalModes:
 
                     magnitude = float(magnitude) * self.magnitude_scale
                     vector_coordinates = (magnitude * float(vc) for vc in vector_coordinates)
-                    vectors = np.array(list(self._batched(vector_coordinates, n=3, strict=True)))
+                    vectors = np.array(self._group_in_threes(vector_coordinates))
 
                     self.modes.append((mode, vectors))
 
-    def validate_modes(self):
-        """
-        Ensure that the modes' shapes match the coordinates.
-        """
-        for _, vectors in self.modes:
-            assert vectors.shape == self.coordinates.shape
+        self._validate_modes()
 
     def generate_trajectory(self):
         """
         Generate the trajectory based on the modes.
         """
         coordinates = self.coordinates.copy()
+        trajectory = []
 
         # Forward trajectory
         for _ in range(0, self.frame_count // 2):
             for _, vectors in self.modes[:self.mode_count]:
                 coordinates = coordinates + vectors
-            self.trajectory.append(coordinates)
+            trajectory.append(coordinates)
 
         # Backward trajectory
         for _ in range(0, self.frame_count // 2):
             for _, vectors in self.modes[:self.mode_count]:
                 coordinates = coordinates - vectors
-            self.trajectory.append(coordinates)
+            trajectory.append(coordinates)
 
-    def write_trajectory(self):
-        """
-        Write the trajectory to a PDB file.
-        """
         n_atoms = self.coordinates.shape[0]
         u = mda.Universe.empty(
             n_atoms=n_atoms,
@@ -99,22 +86,16 @@ class NormalModes:
         u.add_TopologyAttr('names', self.atomnames)
         u.add_TopologyAttr('resids', self.resids)
         u.add_TopologyAttr('resnames', self.resnames)
-        u.load_new(np.array(self.trajectory), format=MDAMemoryReader)
-        u.atoms.write(self.output_file, frames='all')
+        u.load_new(np.array(trajectory), format=MDAMemoryReader)
 
-    @staticmethod
-    def _batched(iterable, n, *, strict=False):
+        return u
+
+    def _validate_modes(self):
         """
-        Batch elements from the iterable into tuples of length n.
+        Ensure that the modes' shapes match the coordinates.
         """
-        if n < 1:
-            raise ValueError('n must be at least one')
+        for _, vectors in self.modes:
+            assert vectors.shape == self.coordinates.shape
 
-        iterator = iter(iterable)
-
-        while batch := tuple(itertools.islice(iterator, n)):
-            if strict and len(batch) != n:
-                raise ValueError('batched(): incomplete batch')
-            yield batch
-
-
+    def _group_in_threes(self, flat_coordinates):
+        return list(util.batched(flat_coordinates, n=3, strict=True))

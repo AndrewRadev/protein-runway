@@ -7,7 +7,7 @@ u = mda.Universe('01_input/top/1fuu_noPTM_complex.top', '01_input/traj/1fuu_noPT
 print(u)
 
 # Select atoms
-ag = u.select_atoms('protein')
+ag = u.select_atoms('all')
 print(ag)
 
 # # Atom data made available as Numpy arrays
