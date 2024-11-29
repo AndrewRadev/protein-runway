@@ -4,6 +4,12 @@ import numpy as np
 from pathlib import Path
 from prody import parseDCD, parsePDB, writeNMD, EDA, Ensemble
 
+import os
+import sys
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
 import lib.util as util
 
 
@@ -26,11 +32,16 @@ class NormalModes:
         self.eda_ensemble = None
         self.structure = None
 
-    def generate_nmd_from_pdb(self, pdb_file):
+
+    def generate_nmd_from_pdb(self, pdb_file, nmd_file):
+        """
+        Generate the NMD file from the PDB file.
+        """
         self.protein_name = Path(pdb_file).stem
+        data_path = Path(pdb_file).parent
 
         # Limit to alpha carbons to keep a low memory profile
-        self.structure = parsePDB(self.pdb_file).select('calpha')
+        self.structure = parsePDB(pdb_file).select('calpha')
 
         ensemble = Ensemble('%s Structure' % self.protein_name)
 
@@ -40,8 +51,11 @@ class NormalModes:
         ensemble.superpose()
 
         self.eda_ensemble = EDA('%s EDA' % self.protein_name)
-        self.eda_ensemble.buildCovariance(self.ensemble)
+        self.eda_ensemble.buildCovariance(ensemble)
         self.eda_ensemble.calcModes(n_modes=10)
+
+        # Pass atoms to writeNMD
+        writeNMD(nmd_file, self.eda_ensemble[:10], self.structure)
 
 
     def parse_nmd_file(self, nmd_file):
@@ -123,3 +137,4 @@ class NormalModes:
 
     def _group_in_threes(self, flat_coordinates):
         return list(util.batched(flat_coordinates, n=3, strict=True))
+
