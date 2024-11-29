@@ -25,7 +25,8 @@ tsv_file = sys.argv[1]
 pdb_file = sys.argv[2]
 method = sys.argv[3]
 k = sys.argv[4]
-output_file = sys.argv[5] if len(sys.argv) > 5 else (f'{Path(pdb_file).stem}.pml')
+filename = Path(pdb_file).stem
+output_file = sys.argv[5] if len(sys.argv) > 5 else (f'{filename}.pml')
 
 
 def parse_chopping(chopping, method, k):
@@ -42,13 +43,14 @@ def parse_chopping(chopping, method, k):
     with open(tsv_file, 'r') as f:
         # Skip the header
         reader = csv.DictReader(f, delimiter='\t')
+        chopping = 'NA'
         for row in reader:
             if methods[method] in row['method'] and row['domain_count'] == k:
                 chopping = row['chopping']
                 break
         if chopping == 'NA':
             print(f"Chopping not available for {method} with k={k}")
-            exit(1)
+            return segments
         for i, domain in enumerate(chopping.split(',')):
             r = []
             subdomains = domain.split('_')
@@ -62,23 +64,28 @@ def parse_chopping(chopping, method, k):
 def generate_pymol_script(pdb_file, segmentation, output_file):
     with open(output_file, 'w') as f:
         f.write(f"load {pdb_file}\n")
-        f.write(f"color gray80, {Path(pdb_file).stem}\n")
+        f.write(f"color gray80, {filename}\n")
         for i, domain in segmentation.items():
+            # Create selections instead of domains
             for j, region in enumerate(domain):
-                f.write(f"create domain_{i}_{j}, res {region[0] + 1}-{region[1]}\n")
-                f.write(f"color {i + 1}, domain_{i}_{j}\n")
-                f.write(f"show cartoon, domain_{i}_{j}\n")
+                f.write(f"select domain_{i:02}_{j:02}, res {region[0] + 1}-{region[1]}\n")
+                f.write(f"color {i + 1}, domain_{i:02}_{j:02}\n")
+                f.write(f"show cartoon, domain_{i:02}_{j:02}\n")
         f.write("hide everything\n")
         f.write("bg_color white\n")
         f.write("zoom all\n")
         f.write("show cartoon, all\n")
-        f.write(f"disable {Path(pdb_file).stem}\n")
-        f.write(f"enable {Path(pdb_file).stem}\n")
+        f.write(f"disable {filename}\n")
+        f.write(f"enable {filename}\n")
 
 
 print(f"Generating PyMOL script for {pdb_file}")
 print(f"Reading segmentation from {tsv_file}")
 segmentation = parse_chopping(tsv_file, method, k)
-print(f"Segmentation: {segmentation}")
+
+if not segmentation:
+    print("Error: Segmentation information is not available, PyMoL script cannot be generated.")
+    exit(1)
+
 print(f"Writing PyMOL script to {output_file}")
 generate_pymol_script(pdb_file, segmentation, output_file)
