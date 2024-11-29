@@ -55,5 +55,6 @@ class TestNormalModes(unittest.TestCase):
         except AssertionError:
             self.fail("Validation of modes failed unexpectedly!")
 
+
 if __name__ == '__main__':
     unittest.main()

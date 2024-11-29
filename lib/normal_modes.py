@@ -3,13 +3,14 @@ from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
 from pathlib import Path
 from prody import parseDCD, parsePDB, writeNMD, EDA, Ensemble
+
 import os
 import sys
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import lib.util as util
 
+import lib.util as util
 
 
 class NormalModes:
@@ -31,13 +32,13 @@ class NormalModes:
         self.eda_ensemble = None
         self.structure = None
 
+
     def generate_nmd_from_pdb(self, pdb_file, nmd_file):
         """
         Generate the NMD file from the PDB file.
         """
         self.protein_name = Path(pdb_file).stem
         data_path = Path(pdb_file).parent
-        print(data_path)
 
         # Limit to alpha carbons to keep a low memory profile
         self.structure = parsePDB(pdb_file).select('calpha')
@@ -55,7 +56,6 @@ class NormalModes:
 
         # Pass atoms to writeNMD
         writeNMD(nmd_file, self.eda_ensemble[:10], self.structure)
-
 
 
     def parse_nmd_file(self, nmd_file):
@@ -120,7 +120,6 @@ class NormalModes:
             atom_resindex=np.arange(n_atoms),
             trajectory=True,
         )
-        
 
         u.add_TopologyAttr('names', self.atomnames)
         u.add_TopologyAttr('resids', self.resids)
@@ -139,9 +138,3 @@ class NormalModes:
     def _group_in_threes(self, flat_coordinates):
         return list(util.batched(flat_coordinates, n=3, strict=True))
 
-if __name__=="__main__":
-    pdbfile = '../02_intermediate/pdb/1a3w_noPTM.with_traj.pdb'
-    nmdfile = '../02_intermediate/1a3w_noPTM.with_traj.nmd'
-    nm = NormalModes()
-    nm.generate_nmd_from_pdb(pdbfile, nmdfile)
-    nm.parse_nmd_file(nmdfile)
