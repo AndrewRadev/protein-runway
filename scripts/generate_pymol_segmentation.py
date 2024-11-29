@@ -72,7 +72,6 @@ def generate_pymol_script(pdb_file, segmentation, output_file):
                 f.write(f"color {i + 1}, domain_{i:02}_{j:02}\n")
                 f.write(f"show cartoon, domain_{i:02}_{j:02}\n")
         f.write("hide everything\n")
-        f.write("bg_color white\n")
         f.write("zoom all\n")
         f.write("show cartoon, all\n")
         f.write(f"disable {filename}\n")
