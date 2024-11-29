@@ -56,7 +56,7 @@ def parse_chopping(chopping, method, k):
             subdomains = domain.split('_')
             for subdomain in subdomains:
                 start, end = subdomain.split('-')
-                r.append((int(start) - 1, int(end)))
+                r.append((int(start), int(end)))
             segments[i] = r
     return segments
 
@@ -64,18 +64,22 @@ def parse_chopping(chopping, method, k):
 def generate_pymol_script(pdb_file, segmentation, output_file):
     with open(output_file, 'w') as f:
         f.write(f"load {pdb_file}\n")
-        f.write(f"color gray80, {filename}\n")
+        f.write(f"color gray50, {filename}\n")
         for i, domain in segmentation.items():
             # Create selections instead of domains
             for j, region in enumerate(domain):
-                f.write(f"select domain_{i:02}_{j:02}, res {region[0] + 1}-{region[1]}\n")
-                f.write(f"color {i + 1}, domain_{i:02}_{j:02}\n")
+                f.write(f"select domain_{i:02}_{j:02}, res {region[0]}-{region[1]}\n")
+                if i < 5:
+                    f.write(f"color {i + 2}, domain_{i:02}_{j:02}\n") 
+                    # skip color 1 because it's black on black bg
+                else:
+                    f.write(f"color {i + 3}, domain_{i:02}_{j:02}\n")
+                    # skip color 7 because it's the same as 6
                 f.write(f"show cartoon, domain_{i:02}_{j:02}\n")
         f.write("hide everything\n")
         f.write("zoom all\n")
         f.write("show cartoon, all\n")
-        f.write(f"disable {filename}\n")
-        f.write(f"enable {filename}\n")
+        f.write("deselect\n")
 
 
 print(f"Generating PyMOL script for {pdb_file}")
