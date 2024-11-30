@@ -1,6 +1,5 @@
 from snakemake.io import glob_wildcards
 import MDAnalysis as mda
-from prody import writeNMD
 
 from lib.trajectory_writer import TrajectoryWriter
 from lib.normal_modes import NormalModes
