@@ -6,11 +6,9 @@
 
 # Intermediate output of scripts:
 02_intermediate/*
-!02_intermediate/.keep
 
 # Final output of scripts:
 03_output/*
-!03_output/.keep
 
 # Environments and metadata:
 .venv/*
