@@ -2,13 +2,7 @@ import MDAnalysis as mda
 from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
 from pathlib import Path
-from prody import parseDCD, parsePDB, writeNMD, EDA, Ensemble
-
-import os
-import sys
-# Add the parent directory to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+from prody import parsePDB, writeNMD, EDA, Ensemble
 
 import lib.util as util
 
@@ -32,13 +26,11 @@ class NormalModes:
         self.eda_ensemble = None
         self.structure = None
 
-
     def generate_nmd_from_pdb(self, pdb_file, nmd_file):
         """
         Generate the NMD file from the PDB file.
         """
         self.protein_name = Path(pdb_file).stem
-        data_path = Path(pdb_file).parent
 
         # Limit to alpha carbons to keep a low memory profile
         self.structure = parsePDB(pdb_file).select('calpha')
@@ -57,10 +49,10 @@ class NormalModes:
         # Pass atoms to writeNMD
         writeNMD(nmd_file, self.eda_ensemble[:10], self.structure)
 
-
     def parse_nmd_file(self, nmd_file):
         """
-        Parse the NMD file and extract atomnames, resnames, resids, coordinates, and modes.
+        Parse the NMD file and extract atomnames, resnames, resids,
+        coordinates, and modes.
         """
         with open(nmd_file) as f:
             for line in f:
@@ -137,4 +129,3 @@ class NormalModes:
 
     def _group_in_threes(self, flat_coordinates):
         return list(util.batched(flat_coordinates, n=3, strict=True))
-
