@@ -208,18 +208,25 @@ rule collect_segmentation_intermediates:
 
 rule report_plot:
     input:
-        tsv_files=expand("benchmarks/{rule_name}/{protein_name}.tsv", 
-                         rule_name=["build_pdbs", "nmd_trajectory", "amsm", 
-                                    "geostas", "segment_intermediates", 
+        tsv_files=expand("benchmarks/{rule_name}/{protein_name}.tsv",
+                         rule_name=["build_pdbs", "nmd_trajectory", "amsm",
+                                    "geostas", "segment_intermediates",
                                     "merizo_clustering",
-                                    "chainsaw_clustering"], 
+                                    "chainsaw_clustering"],
                          protein_name=protein_names)
     output:
         aggregated_csv=report("benchmarks/aggregated_runtime.csv"),
         runtime_plot=report("benchmarks/runtime_plot.png")
     run:
         import pandas as pd
+
+        # Using Agg to avoid problems with threading:
+        # https://matplotlib.org/stable/users/explain/figure/backends.html
+        #
+        import matplotlib
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+
         from pathlib import Path
 
         def aggregate_benchmarks(tsv_files, output_file):
