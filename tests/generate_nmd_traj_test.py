@@ -9,14 +9,9 @@
 # mode 3 17.50 -0.027 -0.025 0.023 ...
 # mode <N> <magnitude> <x1> <y1> <z1> <x2> <y2> <z2> ...
 
-import sys
-import os
-
-# Add the parent directory to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import unittest
 import numpy as np
+
 from lib.normal_modes import NormalModes
 
 class TestNormalModes(unittest.TestCase):
@@ -25,14 +20,14 @@ class TestNormalModes(unittest.TestCase):
         self.nm = NormalModes()
 
     def test_generate_nmd_from_pdb(self):
-        pdb_file = 'test_data/1a3w_noPTM.with_traj.pdb' 
+        pdb_file = 'test_data/1a3w_noPTM.with_traj.pdb'
         nmd_file = 'test_data/1a3w_noPTM.with_traj.nmd'
         self.nm.generate_nmd_from_pdb(pdb_file, nmd_file)
         self.assertIsNotNone(self.nm.structure)
         self.assertIsNotNone(self.nm.eda_ensemble)
 
     def test_parse_nmd_file(self):
-        nmd_file = 'test_data/1a3w_noPTM.with_traj.nmd' 
+        nmd_file = 'test_data/1a3w_noPTM.with_traj.nmd'
         self.nm.parse_nmd_file(nmd_file)
         self.assertIsNotNone(self.nm.atomnames)
         self.assertIsNotNone(self.nm.resnames)

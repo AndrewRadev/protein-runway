@@ -2,8 +2,6 @@ import sys
 import os
 import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from lib.segmentation_parsers import *
 
 class TestSegmentationParser(unittest.TestCase):
@@ -15,7 +13,7 @@ class TestSegmentationParser(unittest.TestCase):
         self.geostas = GeostasParser(geostas_path)
         self.assertEqual(self.chainsaw.path, chainsaw_path)
         self.assertEqual(self.geostas.path, geostas_path)
-    
+
     def test_geostas_chopping(self):
         atom_groups = [[1, 2, 3], [10, 11, 20, 21]]
         chops = self.geostas.generate_geostas_chopping(atom_groups)
@@ -32,7 +30,7 @@ class TestSegmentationParser(unittest.TestCase):
         test2 = self.geostas.parse()
         self.assertTrue('GeoStaS' in test2[0][0])
         self.assertEqual(len(test2), len(list(Path(self.geostas.path).glob('clustering_*.json'))))
-    
+
 
 if __name__ == '__main__':
     unittest.main()
