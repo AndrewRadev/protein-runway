@@ -10,6 +10,9 @@
 # Final output of scripts:
 03_output/*
 
+# Benchmarks:
+benchmarks/*
+
 # Environments and metadata:
 .venv/*
 .micromamba/*
