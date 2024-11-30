@@ -1,35 +1,88 @@
 import sys
 import os
 import unittest
+import tempfile
+from pathlib import Path
 
 from lib.segmentation_parsers import *
 
 class TestSegmentationParser(unittest.TestCase):
-
     def setUp(self):
-        chainsaw_path = 'test_data/1a3w_noPTM.tsv'
-        geostas_path = 'test_data/'
-        self.chainsaw = ChainsawParser(chainsaw_path)
-        self.geostas = GeostasParser(geostas_path)
-        self.assertEqual(self.chainsaw.path, chainsaw_path)
-        self.assertEqual(self.geostas.path, geostas_path)
+        self.root_dir = tempfile.TemporaryDirectory()
+        self.root_path = Path(self.root_dir.name)
+
+    def tearDown(self):
+        self.root_dir.cleanup()
 
     def test_geostas_chopping(self):
+        geostas = GeostasParser('unused/')
+
         atom_groups = [[1, 2, 3], [10, 11, 20, 21]]
-        chops = self.geostas.generate_geostas_chopping(atom_groups)
+        chops = geostas.generate_geostas_chopping(atom_groups)
+
         self.assertEqual(chops, '1-3,10-11_20-21')
-        self.assertEqual(len(atom_groups) - 1, chops.count(','))
 
-    def test_parsers(self):
-        test = self.chainsaw.parse()
-        exp_result = [('Chainsaw', '8', '2-84_186-490,90-184,501-581_681-984,587-679,1011-1074_1180-1492,1075-1176,1502-1572_1672-1982,1573-1671')]
-        self.assertEqual(test, exp_result)
-        self.assertTrue(test[0][1].isdigit())
-        self.assertEqual(test[0][0], 'Chainsaw')
+        atom_groups = [[1, 2, 3], [5], [10, 11, 20, 21]]
+        chops = geostas.generate_geostas_chopping(atom_groups)
 
-        test2 = self.geostas.parse()
-        self.assertTrue('GeoStaS' in test2[0][0])
-        self.assertEqual(len(test2), len(list(Path(self.geostas.path).glob('clustering_*.json'))))
+        self.assertEqual(chops, '1-3,5-5,10-11_20-21')
+
+    def test_chainsaw_parser(self):
+        self._create_chainsaw_clustering_file(
+            'chainsaw.tsv',
+            ['<unused>', '<unused>', 6, 2, '1-3,10-12', '<unused>', '<unused>']
+        )
+
+        chainsaw = ChainsawParser(self.root_path / 'chainsaw.tsv')
+
+        result = chainsaw.parse()
+        exp_result = [(
+            'Chainsaw',
+            '2',
+            '1-3,10-12',
+        )]
+
+        self.assertEqual(result, exp_result)
+
+    def test_geostas_parser(self):
+        self._create_geostas_clustering_file('clustering_hier_02.json', [
+            [1, 2, 3],
+            [10, 11, 12, 50, 60],
+        ])
+
+        geostas = GeostasParser(self.root_dir.name)
+        result = geostas.parse()
+        self.assertEqual(
+            result,
+            [('GeoStaS Hierarchical, K=2', 2, '1-3,10-12_50-50_60-60')],
+        )
+
+        self._create_geostas_clustering_file('clustering_kmeans_03.json', [
+            [1, 2, 3],
+            [10, 11, 12],
+            [50, 60]
+        ])
+        geostas = GeostasParser(self.root_dir.name)
+        result = geostas.parse()
+
+        self.assertEqual(
+            result,
+            [
+                ('GeoStaS K-means, K=3', 3, '1-3,10-12,50-50_60-60'),
+                ('GeoStaS Hierarchical, K=2', 2, '1-3,10-12_50-50_60-60'),
+            ],
+        )
+
+    def _create_chainsaw_clustering_file(self, name, data):
+        with open(self.root_path / name, 'w') as f:
+            writer = csv.writer(f, dialect='unix', delimiter='\t')
+            writer.writerow(['chain_id', 'sequence_md5', 'nres', 'ndom', 'chopping', 'confidence', "time_sec"])
+            writer.writerow(data)
+
+    def _create_geostas_clustering_file(self, name, data):
+        json_data = json.dumps(data)
+        with open(self.root_path / name, 'w') as f:
+            f.write(json_data)
 
 
 if __name__ == '__main__':
