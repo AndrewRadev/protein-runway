@@ -1,0 +1,30 @@
+name: Run snakemake workflow
+
+on: [push]
+
+jobs:
+  run_snakemake_workflow:
+    name: Build the entire workflow with the example inputs in git
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+            python-version: '3.11'
+
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: micromamba_env.yml
+          init-shell: >-
+            bash
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: Install pip requirements
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run snakemake
+        run: |
+          snakemake
