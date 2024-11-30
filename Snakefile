@@ -1,4 +1,9 @@
 from snakemake.io import glob_wildcards
+import MDAnalysis as mda
+
+from lib.trajectory_writer import TrajectoryWriter
+from lib.normal_modes import NormalModes
+from lib.segmentation_parsers import *
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
 
@@ -104,31 +109,40 @@ rule build_pdbs:
         traj_ca_pdb_file="02_intermediate/pdb/{protein_name}.with_traj.ca.pdb",
         traj_ca_dcd_file="02_intermediate/pdb/{protein_name}.with_traj.ca.dcd",
         static_pdb_file="02_intermediate/pdb/{protein_name}.static.pdb"
-    shell: """
-        python scripts/convert_traj_to_pdbs.py \
-            {wildcards.protein_name} {input.topology} {input.trajectory} \
-            02_intermediate/pdb/
-    """
+    run:
+        u = mda.Universe(input.topology, input.trajectory)
+        writer = TrajectoryWriter(u)
+
+        writer.write_static_file(output.static_pdb_file,   'protein')
+        writer.write_trajectory_file(output.traj_pdb_file, 'protein')
+
+        writer.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
+        writer.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
 
 rule build_nmd_file:
     input:
         pdb_file="02_intermediate/pdb/{protein_name}.with_traj.pdb",
     output:
         nmd_file="02_intermediate/pca/{protein_name}.nmd"
-    shell:
-        """
-        python scripts/build_nmd_file.py {input.pdb_file} {output.nmd_file}
-        """
+    run:
+        nmd_traj = NormalModes()
+        nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file, output.nmd_file)
 
 rule build_nmd_trajectory:
     input:
         nmd_file="02_intermediate/pca/{protein_name}.nmd",
     output:
         traj_file="03_output/{protein_name}.nmd_traj.pdb"
-    shell:
-        """
-        python scripts/generate_nmd_traj.py {input.nmd_file} {output.traj_file}
-        """
+    run:
+        #doesn't seem like good practice to refer to variables from a previous rule,
+        #  but it also seems weird to me to now have two instantiated NormalModes objects
+        #  that aren't connected, or perhaps that doesn't matter for the snakemake logic?
+        nmd_traj = NormalModes()
+        nmd_traj.parse_nmd_file(input.nmd_file)
+        mda_universe = nmd_traj.generate_trajectory()
+
+        writer = TrajectoryWriter(mda_universe)
+        writer.write_trajectory_file(output.traj_file)
 
 rule generate_amsm:
     input:
@@ -158,9 +172,11 @@ rule collect_segmentation_intermediates:
         bio3d_geostas="02_intermediate/bio3d_geostas/{protein_name}/"
     output:
         segmentation="03_output/{protein_name}.segmentation.tsv"
-    shell:
-        """
-        python scripts/collect_segmentation_intermediates.py \
-            {input.chainsaw} {input.merizo} {input.bio3d_geostas} \
-            {output.segmentation}
-        """
+    run:
+        #should change this to loop through all input files without manually instantiating somehow?
+        chainsaw_input = ChainsawParser(input.chainsaw)
+        merizo_input = MerizoParser(input.merizo)
+        geostas_input = GeostasParser(input.bio3d_geostas)
+
+        #skipping merizo for now
+        write_segmentations([chainsaw_input, geostas_input], output.segmentation)
