@@ -21,8 +21,8 @@ jobs:
 
       - name: Install pip dependencies
         run: |
-          micromamba run pip install -r requirements.txt
+          micromamba run -n protein-runway pip install -r requirements.txt
 
       - name: Run snakemake
         run: |
-          micromamba run snakemake
+          micromamba run -n protein-runway snakemake
