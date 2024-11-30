@@ -1,6 +1,8 @@
 # Input data:
-01_input/*
-!01_input/.keep
+01_input/top/*
+01_input/traj/*
+!01_input/top/*_example_complex.top
+!01_input/traj/*_example_10-20ns_100snap.trr
 
 # Intermediate output of scripts:
 02_intermediate/*
