@@ -1,10 +1,10 @@
-import sys
-import os
 import unittest
 import tempfile
+import csv
+import json
 from pathlib import Path
 
-from lib.segmentation_parsers import *
+from lib.segmentation_parsers import GeostasParser, ChainsawParser
 
 class TestSegmentationParser(unittest.TestCase):
     def setUp(self):
