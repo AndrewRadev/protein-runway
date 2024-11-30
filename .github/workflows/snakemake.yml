@@ -21,10 +21,12 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
 
-      - name: Install pip requirements
+      - name: Install pip dependencies
         run: |
+          micromamba activate protein-runway
           pip install -r requirements.txt
 
       - name: Run snakemake
         run: |
+          micromamba activate protein-runway
           snakemake
