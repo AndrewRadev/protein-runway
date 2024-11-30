@@ -17,6 +17,7 @@ jobs:
         with:
           environment-file: micromamba_env.yml
           cache-environment: true
+          post-cleanup: 'none'
 
       - name: Install pip dependencies
         run: |
