@@ -209,10 +209,9 @@ rule collect_segmentation_intermediates:
 rule report_plot:
     input:
         tsv_files=expand("benchmarks/{rule_name}/{protein_name}.tsv",
-                         rule_name=["build_pdbs", "nmd_trajectory", "amsm",
-                                    "geostas", "segment_intermediates",
-                                    "merizo_clustering",
-                                    "chainsaw_clustering"],
+                         rule_name=["amsm", "build_nmd", "build_pdbs",
+                                    "nmd_trajectory", "geostas", "segment_intermediates",
+                                    "merizo_clustering", "chainsaw_clustering"],
                          protein_name=protein_names)
     output:
         aggregated_csv=report("benchmarks/aggregated_runtime.csv"),
