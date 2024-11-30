@@ -16,17 +16,13 @@ jobs:
       - uses: mamba-org/setup-micromamba@v2
         with:
           environment-file: micromamba_env.yml
-          init-shell: >-
-            bash
           cache-environment: true
           post-cleanup: 'all'
 
       - name: Install pip dependencies
         run: |
-          micromamba activate protein-runway
-          pip install -r requirements.txt
+          micromamba run pip install -r requirements.txt
 
       - name: Run snakemake
         run: |
-          micromamba activate protein-runway
-          snakemake
+          micromamba run snakemake
