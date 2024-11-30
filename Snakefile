@@ -127,8 +127,7 @@ rule build_nmd_file:
         nmd_file="02_intermediate/pca/{protein_name}.nmd"
     run:
         nmd_traj = NormalModes()
-        nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file)
-        writeNMD(output.nmd_file, nmd_traj.eda_ensemble[:10], nmd_traj.structure)
+        nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file, output.nmd_file)
 
 rule build_nmd_trajectory:
     input:
