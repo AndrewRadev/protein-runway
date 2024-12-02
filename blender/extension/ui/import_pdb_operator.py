@@ -60,7 +60,7 @@ class ImportPDBOperator(bpy.types.Operator):
             domain_regions = generate_domain_ranges(selected_segmentation.chopping)
         else:
             # One domain for the entire protein:
-            domain_regions = [[range(1, len(u.atom_group))]]
+            domain_regions = [[range(1, max(a.resnum for a in u.atoms))]]
 
         atom_mesh_objects = self.draw_alpha_carbons(u, domain_regions, add_convex_hull)
 

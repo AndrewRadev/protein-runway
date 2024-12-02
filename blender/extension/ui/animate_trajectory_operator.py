@@ -46,7 +46,7 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
             self.domain_regions = generate_domain_ranges(selected_segmentation.chopping)
         else:
             # One domain for the entire protein:
-            self.domain_regions = [[range(1, len(u.atoms))]]
+            self.domain_regions = [[range(1, max(a.resnum for a in self.universe.atoms))]]
 
         context.window_manager.modal_handler_add(self)
         self.updating = False
