@@ -1,10 +1,9 @@
-name: Run snakemake workflow
-
+name: Run tests
 on: [push]
 
 jobs:
-  run_snakemake_workflow:
-    name: Build the entire workflow with the example inputs in git
+  run_tests:
+    name: Run tests
     runs-on: ubuntu-latest
 
     steps:
