@@ -26,10 +26,13 @@ class NormalModes:
         self.eda_ensemble = None
         self.structure = None
 
-    def generate_nmd_from_pdb(self, pdb_file, nmd_file):
+    def generate_nmd_from_pdb(self, pdb_file: Path|str, nmd_file: Path|str):
         """
         Generate the NMD file from the PDB file.
         """
+        pdb_file = str(pdb_file)
+        nmd_file = str(nmd_file)
+
         self.protein_name = Path(pdb_file).stem
 
         # Limit to alpha carbons to keep a low memory profile
