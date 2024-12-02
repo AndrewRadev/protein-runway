@@ -1,0 +1,22 @@
+name: Run OOP tests
+
+on: [push]
+
+jobs:
+  run_tests:
+    name: Run all the tests located in the `/tests` directory
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Run segmentation parsers tests
+        run: |
+          python tests/segmentation_parser_test.py
+
+      - name: Run NMD trajectory tests
+        run: |
+          python tests/generate_nmd_traj_test.py
