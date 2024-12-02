@@ -25,6 +25,7 @@ def register():
 
     # Segmentation TSV file input:
     def update_segmentation_path(self, value):
+        self.ProteinRunway_segmentation_path_storage = value
         self.ProteinRunway_segmentations.clear()
 
         for (method, chopping) in parse_segmentation_file(value).items():
@@ -32,17 +33,21 @@ def register():
             new_item.method = method
             new_item.chopping = chopping
 
+    # Actual storage for the path:
+    bpy.types.Scene.ProteinRunway_segmentation_path_storage = bpy.props.StringProperty()
+
+    # Facade of the path that updates other properties with the contents of the file:
     bpy.types.Scene.ProteinRunway_segmentation_path = bpy.props.StringProperty(
         name="File",
         description="File path a TSV with different segmentations for the protein",
         options={"TEXTEDIT_UPDATE"},
         subtype="FILE_PATH",
         maxlen=0,
-        set=update_segmentation_path
+        set=update_segmentation_path,
+        get=lambda s: s.ProteinRunway_segmentation_path_storage
     )
 
     # Array of segmentations serialized as SegmentationItem properties
-    bpy.types.Scene.ProteinRunway_segmentations      = bpy.props.StringProperty()
     bpy.types.Scene.ProteinRunway_segmentations      = bpy.props.CollectionProperty(type=SegmentationItem)
     bpy.types.Scene.ProteinRunway_segmentation_index = bpy.props.IntProperty()
 
@@ -63,6 +68,7 @@ def unregister():
     bpy.utils.unregister_class(SegmentationItem)
 
     del bpy.types.Scene.ProteinRunway_pdb_path
+    del bpy.types.Scene.ProteinRunway_segmentation_path_storage
     del bpy.types.Scene.ProteinRunway_segmentation_path
     del bpy.types.Scene.ProteinRunway_segmentations
     del bpy.types.Scene.ProteinRunway_segmentation_index
