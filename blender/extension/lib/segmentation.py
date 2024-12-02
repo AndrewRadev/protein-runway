@@ -1,18 +1,20 @@
 import csv
 import re
+from collections import defaultdict
 
 def parse_segmentation_file(path):
     """
     Expected columns: 'index', 'method', 'domain_count', 'chopping'
     """
-    segmentations = {}
+    # A nested dictionary of { <method>: { <domain_count>: <chopping> } }
+    segmentations = defaultdict(dict)
 
     # TODO (2024-11-17) Handle errors
 
     with open(path) as f:
         reader = csv.DictReader(f, delimiter='\t')
         for row in reader:
-            segmentations[row['method']] = row['chopping']
+            segmentations[row['method']][row['domain_count']] = row['chopping']
 
     return segmentations
 

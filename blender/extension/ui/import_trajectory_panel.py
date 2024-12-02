@@ -1,7 +1,10 @@
 import bpy
 
 from .import_pdb_operator import ImportPDBOperator
-from .segmentations_ui_list import SegmentationsUiList
+from .segmentations_ui_list import (
+    SegmentationMethodsUiList,
+    SegmentationDomainCountsUiList,
+)
 
 
 class ImportTrajectoryPanel(bpy.types.Panel):
@@ -25,15 +28,25 @@ class ImportTrajectoryPanel(bpy.types.Panel):
         row = layout.row()
         row.prop(scene, "ProteinRunway_segmentation_path")
 
-        if len(scene.ProteinRunway_segmentations) > 0:
+        if len(scene.ProteinRunway_segmentation_methods) > 0:
             layout.row().label(text="Available segmentations", icon="AREA_JOIN")
-            layout.row().template_list(
-                listtype_name=SegmentationsUiList.bl_idname,
-                list_id=SegmentationsUiList.bl_idname,
+
+            row = layout.row()
+            row.template_list(
+                listtype_name=SegmentationMethodsUiList.bl_idname,
+                list_id=SegmentationMethodsUiList.bl_idname,
                 dataptr=scene,
-                propname="ProteinRunway_segmentations",
+                propname="ProteinRunway_segmentation_methods",
                 active_dataptr=scene,
-                active_propname="ProteinRunway_segmentation_index",
+                active_propname="ProteinRunway_segmentation_method_index",
+            )
+            row.template_list(
+                listtype_name=SegmentationDomainCountsUiList.bl_idname,
+                list_id=SegmentationDomainCountsUiList.bl_idname,
+                dataptr=scene,
+                propname="ProteinRunway_segmentation_domain_counts",
+                active_dataptr=scene,
+                active_propname="ProteinRunway_segmentation_domain_count_index",
             )
 
         layout.separator()
