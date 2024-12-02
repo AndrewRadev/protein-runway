@@ -24,9 +24,9 @@ jobs:
 
       - name: Run library tests
         run: |
-          micromamba run -n protein-runway python tests/*.py
+          micromamba run -n protein-runway python -m unittest tests/*_test.py
 
       - name: Run blender tests
         run: |
           cd blender/extension/
-          micromamba run -n protein-runway python tests/*.py
+          micromamba run -n protein-runway python -m unittest tests/*_test.py
