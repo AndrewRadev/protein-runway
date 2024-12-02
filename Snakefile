@@ -154,7 +154,7 @@ rule build_nmd_trajectory:
         #  but it also seems weird to me to now have two instantiated NormalModes objects
         #  that aren't connected, or perhaps that doesn't matter for the snakemake logic?
         nmd_traj = NormalModes()
-        nmd_traj.from_nmd(input.nmd_file)
+        nmd_traj.parse_nmd_file(input.nmd_file)
         mda_universe = nmd_traj.generate_trajectory()
 
         writer = TrajectoryWriter(mda_universe)
