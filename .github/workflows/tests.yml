@@ -1,9 +1,9 @@
-name: Run snakemake workflow
+name: Run tests
 on: [push]
 
 jobs:
-  run_snakemake_workflow:
-    name: Run snakemake workflow
+  run_tests:
+    name: Run tests
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +22,11 @@ jobs:
         run: |
           micromamba run -n protein-runway pip install -r requirements.txt
 
-      - name: Run snakemake
+      - name: Run library tests
         run: |
-          micromamba run -n protein-runway snakemake
+          micromamba run -n protein-runway python -m unittest tests/*_test.py
+
+      - name: Run blender tests
+        run: |
+          cd blender/extension/
+          micromamba run -n protein-runway python -m unittest tests/*_test.py

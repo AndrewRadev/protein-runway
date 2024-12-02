@@ -1,7 +1,7 @@
 from snakemake.io import glob_wildcards
 import MDAnalysis as mda
 
-from lib.trajectory_writer import TrajectoryWriter
+from lib.trajectory import TrajectoryWriter
 from lib.normal_modes import NormalModes
 from lib.segmentation_parsers import *
 
