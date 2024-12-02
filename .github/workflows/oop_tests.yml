@@ -12,11 +12,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: micromamba_env.yml
+          cache-environment: true
+          post-cleanup: 'none'
+
+      - name: Install pip dependencies
+        run: |
+          micromamba run -n protein-runway pip install -r requirements.txt
           
       - name: Run segmentation parsers tests
         run: |
-          python -m unittest tests/segmentation_parser_test.py
+          micromamba run -n protein-runway python -m unittest tests/segmentation_parser_test.py
 
       - name: Run NMD trajectory tests
         run: |
-          python -m unittest tests/generate_nmd_traj_test.py
+          micromamba run -n protein-runway python -m unittest tests/generate_nmd_traj_test.py
