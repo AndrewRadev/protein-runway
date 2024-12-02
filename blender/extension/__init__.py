@@ -32,6 +32,7 @@ def register():
 
     # Segmentation TSV file input:
     def update_segmentation_path(self, value):
+        self.ProteinRunway_segmentation_path_storage = value
         self.ProteinRunway_segmentation_methods.clear()
         self.ProteinRunway_segmentation_domain_counts.clear()
 
@@ -49,13 +50,18 @@ def register():
                 new_item.domain_count = domain_count
                 new_item.chopping = chopping
 
+    # Actual storage for the path:
+    bpy.types.Scene.ProteinRunway_segmentation_path_storage = bpy.props.StringProperty()
+
+    # Facade of the path that updates other properties with the contents of the file:
     bpy.types.Scene.ProteinRunway_segmentation_path = bpy.props.StringProperty(
         name="File",
         description="File path a TSV with different segmentations for the protein",
         options={"TEXTEDIT_UPDATE"},
         subtype="FILE_PATH",
         maxlen=0,
-        set=update_segmentation_path
+        set=update_segmentation_path,
+        get=lambda s: s.ProteinRunway_segmentation_path_storage
     )
 
     # Array of segmentations serialized as SegmentationItem properties
@@ -87,6 +93,7 @@ def unregister():
     bpy.utils.unregister_class(SegmentationDomainCountItem)
 
     del bpy.types.Scene.ProteinRunway_pdb_path
+    del bpy.types.Scene.ProteinRunway_segmentation_path_storage
     del bpy.types.Scene.ProteinRunway_segmentation_path
     del bpy.types.Scene.ProteinRunway_segmentation_methods
     del bpy.types.Scene.ProteinRunway_segmentation_domain_counts
