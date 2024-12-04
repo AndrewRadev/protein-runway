@@ -64,20 +64,9 @@ def extract_selected_segmentation(scene, mda_universe):
     active_method_index       = scene.ProteinRunway_segmentation_method_index
     active_segmentation_index = scene.ProteinRunway_segmentation_params_index
 
+    active_segmentation = None
     if len(scene.ProteinRunway_segmentation_items) > 0:
         active_segmentation = scene.ProteinRunway_segmentation_items[active_segmentation_index]
-        active_method       = scene.ProteinRunway_segmentation_methods[active_method_index]
-
-        if active_method.name != active_segmentation.method_name:
-            # then the "selected" one in the list is actually hidden, so let's
-            # just take the first one that is relevant to this method:
-            active_segmentation = next((
-                item
-                for item in scene.ProteinRunway_segmentation_items
-                if item.method_name == active_method.name
-            ), None)
-    else:
-        active_segmentation = None
 
     if active_segmentation is not None and active_segmentation.chopping != '':
         domain_regions = generate_domain_ranges(active_segmentation.chopping)

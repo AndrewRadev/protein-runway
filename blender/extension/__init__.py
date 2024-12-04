@@ -77,7 +77,22 @@ def register():
     bpy.types.Scene.ProteinRunway_segmentation_items = bpy.props.CollectionProperty(
         type=SegmentationItem
     )
-    bpy.types.Scene.ProteinRunway_segmentation_method_index = bpy.props.IntProperty()
+
+    def update_segmentation_index(self, context):
+        active_method_index       = self.ProteinRunway_segmentation_method_index
+        active_method             = self.ProteinRunway_segmentation_methods[active_method_index]
+        active_segmentation_index = self.ProteinRunway_segmentation_params_index
+        active_segmentation       = self.ProteinRunway_segmentation_items[active_segmentation_index]
+
+        if active_method.name != active_segmentation.method_name:
+            for index, item in enumerate(self.ProteinRunway_segmentation_items):
+                if item.method_name == active_method.name:
+                    self.ProteinRunway_segmentation_params_index = index
+                    break
+    bpy.types.Scene.ProteinRunway_segmentation_method_index = bpy.props.IntProperty(
+        update=update_segmentation_index
+    )
+
     bpy.types.Scene.ProteinRunway_segmentation_params_index = bpy.props.IntProperty()
 
     # Progress bar progress value
