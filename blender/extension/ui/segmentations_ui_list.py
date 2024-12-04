@@ -2,6 +2,7 @@ import bpy
 
 from ..lib.segmentation import generate_domain_ranges
 
+
 class SegmentationMethodItem(bpy.types.PropertyGroup):
     """
     A single segmentation method, wrapped in a custom class
@@ -47,9 +48,6 @@ class SegmentationParamsUiList(bpy.types.UIList):
         active_method_index = scene.ProteinRunway_segmentation_method_index
         active_method       = scene.ProteinRunway_segmentation_methods[active_method_index]
 
-        active_params_index = scene.ProteinRunway_segmentation_params_index
-        active_item         = scene.ProteinRunway_segmentation_items[active_params_index]
-
         items = scene.ProteinRunway_segmentation_items
         filter_flags = [self.bitflag_filter_item] * len(items)
 
@@ -61,10 +59,9 @@ class SegmentationParamsUiList(bpy.types.UIList):
 
 
 def extract_selected_segmentation(scene, mda_universe):
-    active_method_index       = scene.ProteinRunway_segmentation_method_index
     active_segmentation_index = scene.ProteinRunway_segmentation_params_index
-
     active_segmentation = None
+
     if len(scene.ProteinRunway_segmentation_items) > 0:
         active_segmentation = scene.ProteinRunway_segmentation_items[active_segmentation_index]
 

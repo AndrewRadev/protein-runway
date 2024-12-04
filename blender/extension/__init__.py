@@ -30,43 +30,14 @@ def register():
         maxlen=0,
     )
 
-    # Segmentation TSV file input:
-    def update_segmentation_path(self, value):
-        self.ProteinRunway_segmentation_path_storage = value
-
-        self.ProteinRunway_segmentation_methods.clear()
-        self.ProteinRunway_segmentation_items.clear()
-
-        first_method_item = self.ProteinRunway_segmentation_methods.add()
-        first_method_item.name = "No segmentation"
-
-        first_item = self.ProteinRunway_segmentation_items.add()
-        first_item.method_name = first_method_item.name
-        first_item.domain_count = '1'
-        first_item.chopping = ''
-
-        for (method_name, domain_counts) in parse_segmentation_file(value).items():
-            new_item = self.ProteinRunway_segmentation_methods.add()
-            new_item.name = method_name
-
-            for (domain_count, chopping) in domain_counts.items():
-                new_item = self.ProteinRunway_segmentation_items.add()
-                new_item.method_name = method_name
-                new_item.domain_count = domain_count
-                new_item.chopping = chopping
-
-    # Actual storage for the path:
-    bpy.types.Scene.ProteinRunway_segmentation_path_storage = bpy.props.StringProperty()
-
-    # Facade of the path that updates other properties with the contents of the file:
+    # Path of the segmentation TSV
     bpy.types.Scene.ProteinRunway_segmentation_path = bpy.props.StringProperty(
         name="File",
         description="File path a TSV with different segmentations for the protein",
         options={"TEXTEDIT_UPDATE"},
         subtype="FILE_PATH",
         maxlen=0,
-        set=update_segmentation_path,
-        get=lambda s: s.ProteinRunway_segmentation_path_storage
+        update=update_segmentation_path,
     )
 
     # Array of segmentation methods
@@ -78,21 +49,10 @@ def register():
         type=SegmentationItem
     )
 
-    def update_segmentation_index(self, context):
-        active_method_index       = self.ProteinRunway_segmentation_method_index
-        active_method             = self.ProteinRunway_segmentation_methods[active_method_index]
-        active_segmentation_index = self.ProteinRunway_segmentation_params_index
-        active_segmentation       = self.ProteinRunway_segmentation_items[active_segmentation_index]
-
-        if active_method.name != active_segmentation.method_name:
-            for index, item in enumerate(self.ProteinRunway_segmentation_items):
-                if item.method_name == active_method.name:
-                    self.ProteinRunway_segmentation_params_index = index
-                    break
+    # Segmentation methods and segmentation params
     bpy.types.Scene.ProteinRunway_segmentation_method_index = bpy.props.IntProperty(
-        update=update_segmentation_index
+        update=update_segmentation_method_index
     )
-
     bpy.types.Scene.ProteinRunway_segmentation_params_index = bpy.props.IntProperty()
 
     # Progress bar progress value
@@ -114,7 +74,6 @@ def unregister():
     bpy.utils.unregister_class(SegmentationItem)
 
     del bpy.types.Scene.ProteinRunway_pdb_path
-    del bpy.types.Scene.ProteinRunway_segmentation_path_storage
     del bpy.types.Scene.ProteinRunway_segmentation_path
     del bpy.types.Scene.ProteinRunway_segmentation_methods
     del bpy.types.Scene.ProteinRunway_segmentation_items
@@ -122,3 +81,58 @@ def unregister():
     del bpy.types.Scene.ProteinRunway_segmentation_params_index
     del bpy.types.Scene.ProteinRunway_progress
     del bpy.types.Scene.ProteinRunway_add_convex_hull
+
+
+def update_segmentation_path(self, context):
+    """
+    When the segmentation path changes, this function is triggered. It parses
+    the file and populates the UI lists with the methods and parameters
+    provided.
+    """
+    # Clear previous entries
+    self.ProteinRunway_segmentation_methods.clear()
+    self.ProteinRunway_segmentation_items.clear()
+
+    path = self.ProteinRunway_segmentation_path
+    if len(path) == 0:
+        # The path has been removed, clear out the UI lists:
+        return
+
+    # Initialize default method with no segmentation
+    first_method_item      = self.ProteinRunway_segmentation_methods.add()
+    first_method_item.name = "No segmentation"
+
+    first_item              = self.ProteinRunway_segmentation_items.add()
+    first_item.method_name  = first_method_item.name
+    first_item.domain_count = '1'
+    first_item.chopping     = ''
+
+    # For every unique method, create one entry in the SegmentationMethodsUiList:
+    for (method_name, domain_counts) in parse_segmentation_file(path).items():
+        new_item      = self.ProteinRunway_segmentation_methods.add()
+        new_item.name = method_name
+
+        # For every (method, domain_count, chopping), create one entry in the
+        # SegmentationParamsUiList:
+        for (domain_count, chopping) in domain_counts.items():
+            new_item              = self.ProteinRunway_segmentation_items.add()
+            new_item.method_name  = method_name
+            new_item.domain_count = domain_count
+            new_item.chopping     = chopping
+
+
+def update_segmentation_method_index(self, context):
+    """
+    When the segmentation method changes, this function is triggered and
+    reselects the active segmentation item.
+    """
+    active_method_index       = self.ProteinRunway_segmentation_method_index
+    active_method             = self.ProteinRunway_segmentation_methods[active_method_index]
+    active_segmentation_index = self.ProteinRunway_segmentation_params_index
+    active_segmentation       = self.ProteinRunway_segmentation_items[active_segmentation_index]
+
+    if active_method.name != active_segmentation.method_name:
+        for index, item in enumerate(self.ProteinRunway_segmentation_items):
+            if item.method_name == active_method.name:
+                self.ProteinRunway_segmentation_params_index = index
+                return
