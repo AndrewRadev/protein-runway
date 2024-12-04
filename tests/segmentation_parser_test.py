@@ -54,7 +54,7 @@ class TestSegmentationParser(unittest.TestCase):
         result = geostas.parse()
         self.assertEqual(
             result,
-            [('GeoStaS Hierarchical, K=2', 2, '1-3,10-12_50-50_60-60')],
+            [('GeoStaS Hierarchical', 2, '1-3,10-12_50-50_60-60')],
         )
 
         self._create_geostas_clustering_file('clustering_kmeans_03.json', [
@@ -68,8 +68,8 @@ class TestSegmentationParser(unittest.TestCase):
         self.assertEqual(
             result,
             [
-                ('GeoStaS K-means, K=3', 3, '1-3,10-12,50-50_60-60'),
-                ('GeoStaS Hierarchical, K=2', 2, '1-3,10-12_50-50_60-60'),
+                ('GeoStaS K-means', 3, '1-3,10-12,50-50_60-60'),
+                ('GeoStaS Hierarchical', 2, '1-3,10-12_50-50_60-60'),
             ],
         )
 
