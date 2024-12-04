@@ -24,7 +24,7 @@ class ImportTrajectoryPanel(bpy.types.Panel):
 
         layout.separator()
 
-        layout.label(text="Segmentation mapping file", icon="AREA_JOIN")
+        layout.label(text="Segmentation mapping file", icon="SPREADSHEET")
         row = layout.row()
         row.prop(scene, "ProteinRunway_segmentation_path")
 

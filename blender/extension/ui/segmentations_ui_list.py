@@ -6,10 +6,7 @@ class SegmentationMethodItem(bpy.types.PropertyGroup):
     """
     A single segmentation method, wrapped in a custom class
     """
-    method: bpy.props.StringProperty(
-        name="Method",
-        description="Segmentation method",
-    )
+    name: bpy.props.StringProperty(name="Method name")
 
 
 class SegmentationItem(bpy.types.PropertyGroup):
@@ -17,20 +14,9 @@ class SegmentationItem(bpy.types.PropertyGroup):
     Group of properties representing an item in the list of domain counts to
     pick from for a given method.
     """
-    method: bpy.props.StringProperty(
-        name="Method",
-        description="Segmentation method",
-    )
-
-    domain_count: bpy.props.StringProperty(
-        name="DomainCount",
-        description="Number of domains for a given method",
-    )
-
-    chopping: bpy.props.StringProperty(
-        name="Chopping",
-        description="Residue ranges grouped in domains",
-    )
+    method_name:  bpy.props.StringProperty(name="Method name")
+    domain_count: bpy.props.StringProperty(name="Domain count")
+    chopping:     bpy.props.StringProperty(name="Chopping")
 
 
 class SegmentationMethodsUiList(bpy.types.UIList):
@@ -40,39 +26,20 @@ class SegmentationMethodsUiList(bpy.types.UIList):
 
     bl_idname = "PROTEINRUNWAY_UL_segmentation_methods_ui_list"
 
-    def draw_item(
-        self,
-        context,
-        layout,
-        data,
-        item,
-        icon,
-        active_data,
-        active_propname,
-        index,
-    ):
-        layout.label(text=item.method, icon='FILE_3D')
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(text=item.name, icon='GRAPH')
 
 
 class SegmentationParamsUiList(bpy.types.UIList):
     """
-    List of possible segmentations of domains
+    List of possible segmentations of domains, represented by the domain count,
+    but bound to a particular method.
     """
 
     bl_idname = "PROTEINRUNWAY_UL_segmentation_params_ui_list"
 
-    def draw_item(
-        self,
-        context,
-        layout,
-        data,
-        item,
-        icon,
-        active_data,
-        active_propname,
-        index,
-    ):
-        layout.label(text=item.domain_count, icon='FILE_3D')
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(text=item.domain_count, icon='OPTIONS')
 
     def filter_items(self, context, data, propname):
         scene = context.scene
@@ -87,7 +54,7 @@ class SegmentationParamsUiList(bpy.types.UIList):
         filter_flags = [self.bitflag_filter_item] * len(items)
 
         for index, item in enumerate(items):
-            if active_method.method != item.method:
+            if active_method.name != item.method_name:
                 filter_flags[index] &= True
 
         return filter_flags, []
@@ -101,13 +68,13 @@ def extract_selected_segmentation(scene, mda_universe):
         active_segmentation = scene.ProteinRunway_segmentation_items[active_segmentation_index]
         active_method       = scene.ProteinRunway_segmentation_methods[active_method_index]
 
-        if active_method.method != active_segmentation.method:
+        if active_method.name != active_segmentation.method_name:
             # then the "selected" one in the list is actually hidden, so let's
             # just take the first one that is relevant to this method:
             active_segmentation = next((
                 item
                 for item in scene.ProteinRunway_segmentation_items
-                if item.method == active_method.method
+                if item.method_name == active_method.name
             ), None)
     else:
         active_segmentation = None

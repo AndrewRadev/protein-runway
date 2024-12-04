@@ -38,22 +38,20 @@ def register():
         self.ProteinRunway_segmentation_items.clear()
 
         first_method_item = self.ProteinRunway_segmentation_methods.add()
-        first_method_item.method = "No segmentation"
-        first_method_item.domain_counts = '1'
+        first_method_item.name = "No segmentation"
 
         first_item = self.ProteinRunway_segmentation_items.add()
-        first_item.method = "No segmentation"
+        first_item.method_name = first_method_item.name
         first_item.domain_count = '1'
         first_item.chopping = ''
 
-        for (method, domain_counts) in parse_segmentation_file(value).items():
+        for (method_name, domain_counts) in parse_segmentation_file(value).items():
             new_item = self.ProteinRunway_segmentation_methods.add()
-            new_item.method = method
-            new_item.domain_counts = ','.join(domain_counts.keys())
+            new_item.name = method_name
 
             for (domain_count, chopping) in domain_counts.items():
                 new_item = self.ProteinRunway_segmentation_items.add()
-                new_item.method = method
+                new_item.method_name = method_name
                 new_item.domain_count = domain_count
                 new_item.chopping = chopping
 
