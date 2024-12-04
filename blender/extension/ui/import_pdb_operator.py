@@ -114,12 +114,6 @@ class ImportPDBOperator(bpy.types.Operator):
         material.diffuse_color = color
         material.use_nodes = True
 
-        # TODO: Investigate this material modification by Atomic Blender:
-        #
-        # mat_P_BSDF = next(n for n in material.node_tree.nodes
-        #                   if n.type == "BSDF_PRINCIPLED")
-        # mat_P_BSDF.inputs['Base Color'].default_value = color
-
         material.name = f"{domain_name}_material"
 
         atom_mesh = bpy.data.meshes.new(f"{domain_name}_mesh")
@@ -165,18 +159,6 @@ class ImportPDBOperator(bpy.types.Operator):
 
         atom_mesh_object.instance_type = 'VERTS'
 
-        # TODO (2024-11-14) Taken from Atomic Blender, check if it's necessary:
-
-        # Note the collection where the ball was placed into.
-        coll_all = representative_ball.users_collection
-        if len(coll_all) > 0:
-            coll_past = coll_all[0]
-        else:
-            coll_past = bpy.context.scene.collection
-
-        # Put the atom into the new collection 'atom' and ...
         self.collection_protein.objects.link(representative_ball)
-        # ... unlink the atom from the other collection.
-        coll_past.objects.unlink(representative_ball)
 
         return atom_mesh_object
