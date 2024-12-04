@@ -3,7 +3,7 @@ import bpy
 from .import_pdb_operator import ImportPDBOperator
 from .segmentations_ui_list import (
     SegmentationMethodsUiList,
-    SegmentationDomainCountsUiList,
+    SegmentationParamsUiList,
 )
 
 
@@ -41,12 +41,12 @@ class ImportTrajectoryPanel(bpy.types.Panel):
                 active_propname="ProteinRunway_segmentation_method_index",
             )
             row.template_list(
-                listtype_name=SegmentationDomainCountsUiList.bl_idname,
-                list_id=SegmentationDomainCountsUiList.bl_idname,
+                listtype_name=SegmentationParamsUiList.bl_idname,
+                list_id=SegmentationParamsUiList.bl_idname,
                 dataptr=scene,
-                propname="ProteinRunway_segmentation_domain_counts",
+                propname="ProteinRunway_segmentation_items",
                 active_dataptr=scene,
-                active_propname="ProteinRunway_segmentation_domain_count_index",
+                active_propname="ProteinRunway_segmentation_params_index",
             )
 
         layout.separator()

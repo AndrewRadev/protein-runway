@@ -4,19 +4,15 @@ from ..lib.segmentation import generate_domain_ranges
 
 class SegmentationMethodItem(bpy.types.PropertyGroup):
     """
-    Group of properties representing an item in the segmentation methods list
+    A single segmentation method, wrapped in a custom class
     """
     method: bpy.props.StringProperty(
         name="Method",
         description="Segmentation method",
     )
 
-    domain_counts: bpy.props.StringProperty(
-        name="DomainCounts",
-        description="Number of domains for a given method, comma-separated",
-    )
 
-class SegmentationDomainCountItem(bpy.types.PropertyGroup):
+class SegmentationItem(bpy.types.PropertyGroup):
     """
     Group of properties representing an item in the list of domain counts to
     pick from for a given method.
@@ -36,9 +32,10 @@ class SegmentationDomainCountItem(bpy.types.PropertyGroup):
         description="Residue ranges grouped in domains",
     )
 
+
 class SegmentationMethodsUiList(bpy.types.UIList):
     """
-    List of possible segmentations of domains
+    List of unique segmentation methods
     """
 
     bl_idname = "PROTEINRUNWAY_UL_segmentation_methods_ui_list"
@@ -56,12 +53,13 @@ class SegmentationMethodsUiList(bpy.types.UIList):
     ):
         layout.label(text=item.method, icon='FILE_3D')
 
-class SegmentationDomainCountsUiList(bpy.types.UIList):
+
+class SegmentationParamsUiList(bpy.types.UIList):
     """
     List of possible segmentations of domains
     """
 
-    bl_idname = "PROTEINRUNWAY_UL_segmentation_domain_counts_ui_list"
+    bl_idname = "PROTEINRUNWAY_UL_segmentation_params_ui_list"
 
     def draw_item(
         self,
@@ -78,10 +76,14 @@ class SegmentationDomainCountsUiList(bpy.types.UIList):
 
     def filter_items(self, context, data, propname):
         scene = context.scene
-        active_method_index = scene.ProteinRunway_segmentation_method_index
-        active_method = scene.ProteinRunway_segmentation_methods[active_method_index]
 
-        items = scene.ProteinRunway_segmentation_domain_counts
+        active_method_index = scene.ProteinRunway_segmentation_method_index
+        active_method       = scene.ProteinRunway_segmentation_methods[active_method_index]
+
+        active_params_index = scene.ProteinRunway_segmentation_params_index
+        active_item         = scene.ProteinRunway_segmentation_items[active_params_index]
+
+        items = scene.ProteinRunway_segmentation_items
         filter_flags = [self.bitflag_filter_item] * len(items)
 
         for index, item in enumerate(items):
@@ -92,10 +94,21 @@ class SegmentationDomainCountsUiList(bpy.types.UIList):
 
 
 def extract_selected_segmentation(scene, mda_universe):
-    active_segmentation_index = scene.ProteinRunway_segmentation_domain_count_index
+    active_method_index       = scene.ProteinRunway_segmentation_method_index
+    active_segmentation_index = scene.ProteinRunway_segmentation_params_index
 
-    if active_segmentation_index:
-        active_segmentation = scene.ProteinRunway_segmentation_domain_counts[active_segmentation_index]
+    if len(scene.ProteinRunway_segmentation_items) > 0:
+        active_segmentation = scene.ProteinRunway_segmentation_items[active_segmentation_index]
+        active_method       = scene.ProteinRunway_segmentation_methods[active_method_index]
+
+        if active_method.method != active_segmentation.method:
+            # then the "selected" one in the list is actually hidden, so let's
+            # just take the first one that is relevant to this method:
+            active_segmentation = next((
+                item
+                for item in scene.ProteinRunway_segmentation_items
+                if item.method == active_method.method
+            ), None)
     else:
         active_segmentation = None
 
