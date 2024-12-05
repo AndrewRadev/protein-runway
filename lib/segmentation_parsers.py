@@ -96,7 +96,7 @@ class GeostasParser(SegmentationParser):
             k           = int(re.findall(r'\d\d', Path(file).stem)[0])
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self.generate_geostas_chopping(atom_groups)
-            method      = f"GeoStaS K-means, K={k}"
+            method      = f"GeoStaS K-means"
 
             segmentations.append((method, len(atom_groups), chopping))
 
@@ -104,7 +104,7 @@ class GeostasParser(SegmentationParser):
             k           = int(re.findall(r'\d\d', Path(file).stem)[0])
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self.generate_geostas_chopping(atom_groups)
-            method      = f"GeoStaS Hierarchical, K={k}"
+            method      = f"GeoStaS Hierarchical"
 
             segmentations.append((method, len(atom_groups), chopping))
 
