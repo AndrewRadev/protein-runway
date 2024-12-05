@@ -23,13 +23,21 @@ jobs:
         run: |
           micromamba run -n protein-runway pip install -r requirements.txt
 
-      - name: Generate workflow image artifact
+      - name: Generate dag image artifact
         run: |
           micromamba run -n protein-runway snakemake --dag 03_output/5vde_example.segmentation.tsv | micromamba run -n protein-runway dot -Tsvg > dag.svg
       - uses: actions/upload-artifact@v4
         with:
-            name: dependency-graph
+            name: dag-image
             path: dag.svg
+
+      - name: Generate filegraph image artifact
+        run: |
+          micromamba run -n protein-runway snakemake --filegraph 03_output/5vde_example.segmentation.tsv | micromamba run -n protein-runway dot -Tsvg > dag.svg
+      - uses: actions/upload-artifact@v4
+        with:
+            name: filegraph-image
+            path: filegraph.svg
 
       - name: Run snakemake
         run: |

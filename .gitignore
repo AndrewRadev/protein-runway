@@ -25,6 +25,6 @@ vendor/*
 blender/extension.zip
 blender/extension/wheels/*
 
-# DAG workflow
+# Artifact workflow
 dag.svg
-
+filegraph.svg
