@@ -16,6 +16,7 @@ jobs:
         with:
           environment-file: micromamba_env.yml
           cache-environment: true
+          cache-environment-key: ${{ hashFiles('micromamba_env.yml') }}
           post-cleanup: 'none'
 
       - name: Install pip dependencies
