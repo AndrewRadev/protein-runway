@@ -25,8 +25,7 @@ jobs:
 
       - name: Generate workflow image artifact
         run: |
-          micromamba activate protein-runway 
-          snakemake --dag 03_output/5vde_example.segmentation.tsv | dot -Tsvg > dag.svg
+          micromamba run -n protein-runway snakemake --dag 03_output/5vde_example.segmentation.tsv | micromamba run -n protein-runway dot -Tsvg > dag.svg
       - uses: actions/upload-artifact@v4
         with:
             name: dependency-graph
