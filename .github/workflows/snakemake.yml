@@ -30,10 +30,11 @@ jobs:
       - name: Generate filegraph image artifact
         run: |
           micromamba run -n protein-runway snakemake --filegraph 03_output/5vde_example.segmentation.tsv | micromamba run -n protein-runway dot -Tsvg > filegraph.svg
+      
       - uses: actions/upload-artifact@v4
         with:
-            name: workflow-graphs
-            path: *.svg
+          name: workflow-graphs
+          path: *.svg
 
       - name: Run snakemake
         run: |
