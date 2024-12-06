@@ -24,14 +24,16 @@ def write_segmentations(seg_objects, output_file):
 
 
 class SegmentationParser:
-    def __init__(self, path: Path|str):
+    def __init__(self, *paths: list[Path|str]):
         """
-        The intended input is a filesystem path where segmentation data can be
+        The intended inputs are filesystem paths where segmentation data can be
         found.
 
-        TODO multiple paths
+        These could be PDBs or trajectories, but they will most likely be the
+        final results of external tools that need to be parsed into a unified
+        format.
         """
-        self.path = path
+        self.paths = paths
 
     @abstractmethod
     def parse(self) -> Iterator[Tuple[str, int, str]]:

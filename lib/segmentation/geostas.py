@@ -7,15 +7,20 @@ from . import SegmentationParser
 
 
 class Parser(SegmentationParser):
+    def __init__(self, clustering_directory_path):
+        super().__init__(clustering_directory_path)
+
     def parse(self) -> Iterator[Tuple[str, int, str]]:
-        for file in sorted(Path(self.path).glob('clustering_kmeans_*.json')):
+        clustering_directory_path = Path(self.paths[0])
+
+        for file in sorted(clustering_directory_path.glob('clustering_kmeans_*.json')):
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self._generate_chopping(atom_groups)
             method      = "GeoStaS K-means"
 
             yield (method, len(atom_groups), chopping)
 
-        for file in sorted(Path(self.path).glob('clustering_hier_*.json')):
+        for file in sorted(clustering_directory_path.glob('clustering_hier_*.json')):
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self._generate_chopping(atom_groups)
             method      = "GeoStaS Hierarchical"
