@@ -1,10 +1,12 @@
 import csv
+from collections.abc import Iterator
+from typing import Tuple
 
 from . import SegmentationParser
 
 
 class Parser(SegmentationParser):
-    def parse(self):
+    def parse(self) -> Iterator[Tuple[str, int, str]]:
         rows = self._read_csv_rows(self.path, delimiter='\t')
         data = rows[0]
 

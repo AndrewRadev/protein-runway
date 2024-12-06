@@ -1,11 +1,13 @@
 import json
 from pathlib import Path
+from collections.abc import Iterator
+from typing import Tuple
 
 from . import SegmentationParser
 
 
 class Parser(SegmentationParser):
-    def parse(self):
+    def parse(self) -> Iterator[Tuple[str, int, str]]:
         for file in sorted(Path(self.path).glob('clustering_kmeans_*.json')):
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self._generate_chopping(atom_groups)
