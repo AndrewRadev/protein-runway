@@ -1,60 +1,11 @@
-from abc import abstractmethod
-import csv
-import json
 import re
+import json
 from pathlib import Path
 
-
-def write_segmentations(seg_objects, output_file):
-    segmentations = []
-    columns = ['index', 'method', 'domain_count', 'chopping']
-    index = 1
-
-    for seg_object in seg_objects:
-        for method, domain_count, chopping in seg_object.parse():
-            segmentations.append((index, method, domain_count, chopping))
-            index += 1
-
-    with open(output_file, 'w') as f:
-        writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(columns)
-
-        for segmentation in segmentations:
-            writer.writerow(segmentation)
+from . import SegmentationParser
 
 
-class SegmentationParser:
-    def __init__(self, path):
-        self.path = path
-
-    @abstractmethod
-    def parse():
-        raise NotImplementedError
-
-
-class ChainsawParser(SegmentationParser):
-    def __init__(self, path):
-        super().__init__(path)
-
-    def read_csv_rows(self, path, **kwargs):
-        with open(self.path) as f:
-            reader = csv.DictReader(f, **kwargs)
-            return [row for row in reader]
-
-    def parse(self):
-        rows = self.read_csv_rows(self.path, delimiter='\t')
-        data = rows[0]
-        segmentation = ("Chainsaw", data['ndom'], data['chopping'])
-
-        return [segmentation]
-
-
-class MerizoParser(SegmentationParser):
-    def __init__(self, path):
-        super().__init__(path)
-
-
-class GeostasParser(SegmentationParser):
+class Parser(SegmentationParser):
     def __init__(self, path):
         super().__init__(path)
 
