@@ -2,6 +2,7 @@ import unittest
 import tempfile
 import csv
 import json
+import warnings
 from pathlib import Path
 
 import MDAnalysis as mda
@@ -17,9 +18,11 @@ class TestSegmentationParser(unittest.TestCase):
     def setUp(self):
         self.root_dir = tempfile.TemporaryDirectory()
         self.root_path = Path(self.root_dir.name)
+        warnings.simplefilter("ignore")
 
     def tearDown(self):
         self.root_dir.cleanup()
+        warnings.resetwarnings()
 
     def test_geostas_chopping(self):
         parser = geostas.Parser('unused.pdb', 'unused/')
@@ -93,7 +96,9 @@ class TestSegmentationParser(unittest.TestCase):
         u.load_new(coordinates, format=MDAMemoryReader)
         u.add_TopologyAttr('names', ['CA'] * atom_count)
         u.add_TopologyAttr('resids', np.arange(atom_count) + 1)
-        u.atoms.write(self.root_path / name)
+
+        with warnings.catch_warnings(action="ignore"):
+            u.atoms.write(self.root_path / name)
 
     def _create_chainsaw_clustering_file(self, name, data):
         with open(self.root_path / name, 'w') as f:

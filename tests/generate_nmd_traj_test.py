@@ -11,6 +11,7 @@
 
 import unittest
 import tempfile
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -27,8 +28,11 @@ class TestNormalModes(unittest.TestCase):
         self.root_dir = tempfile.TemporaryDirectory()
         self.root_path = Path(self.root_dir.name)
 
+        warnings.simplefilter("ignore")
+
     def tearDown(self):
         self.root_dir.cleanup()
+        warnings.resetwarnings()
 
     def test_generate_nmd_from_pdb(self):
         # Generate a PDB file from our example inputs for testing:
