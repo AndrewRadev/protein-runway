@@ -9,23 +9,19 @@ class Parser(SegmentationParser):
         super().__init__(path)
 
     def parse(self):
-        segmentations = []
-
         for file in sorted(Path(self.path).glob('clustering_kmeans_*.json')):
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self._generate_chopping(atom_groups)
             method      = "GeoStaS K-means"
 
-            segmentations.append((method, len(atom_groups), chopping))
+            yield (method, len(atom_groups), chopping)
 
         for file in sorted(Path(self.path).glob('clustering_hier_*.json')):
             atom_groups = json.loads(Path(file).read_text())
             chopping    = self._generate_chopping(atom_groups)
             method      = "GeoStaS Hierarchical"
 
-            segmentations.append((method, len(atom_groups), chopping))
-
-        return segmentations
+            yield (method, len(atom_groups), chopping)
 
     def _generate_chopping(self, atom_groups):
         """

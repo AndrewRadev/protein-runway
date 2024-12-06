@@ -14,9 +14,7 @@ class Parser(SegmentationParser):
         domain_count = data[4]
         chopping     = data[7]
 
-        segmentation = ("Merizo", domain_count, chopping)
-
-        return [segmentation]
+        yield ("Merizo", domain_count, chopping)
 
     def _read_csv_rows(self, path, **kwargs):
         with open(self.path) as f:
