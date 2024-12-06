@@ -25,6 +25,5 @@ vendor/*
 blender/extension.zip
 blender/extension/wheels/*
 
-# Artifact workflow
-dag.svg
-filegraph.svg
+# Caching stuff
+__pycache__
