@@ -203,13 +203,13 @@ rule collect_segmentation_intermediates:
     benchmark:
         "benchmarks/segment_intermediates/{protein_name}.tsv"
     run:
-        #should change this to loop through all input files without manually instantiating somehow?
-        chainsaw_input = chainsaw.Parser(input.chainsaw)
-        merizo_input = merizo.Parser(input.merizo)
-        geostas_input = geostas.Parser(input.bio3d_geostas)
+        inputs = [
+            chainsaw.Parser(input.chainsaw),
+            merizo.Parser(input.merizo),
+            geostas.Parser(input.bio3d_geostas),
+        ]
 
-        #skipping merizo for now
-        write_segmentations([chainsaw_input, geostas_input], output.segmentation)
+        write_segmentations(inputs, output.segmentation)
 
 rule report_plot:
     input:
