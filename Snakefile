@@ -7,7 +7,7 @@ from lib.segmentation import (
     write_segmentations,
     geostas,
     merizo,
-    chainsaw
+    chainsaw,
 )
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
