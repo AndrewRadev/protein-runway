@@ -1,4 +1,3 @@
-import re
 import json
 from pathlib import Path
 
@@ -9,7 +8,26 @@ class Parser(SegmentationParser):
     def __init__(self, path):
         super().__init__(path)
 
-    def generate_geostas_chopping(self, atom_groups):
+    def parse(self):
+        segmentations = []
+
+        for file in sorted(Path(self.path).glob('clustering_kmeans_*.json')):
+            atom_groups = json.loads(Path(file).read_text())
+            chopping    = self._generate_chopping(atom_groups)
+            method      = "GeoStaS K-means"
+
+            segmentations.append((method, len(atom_groups), chopping))
+
+        for file in sorted(Path(self.path).glob('clustering_hier_*.json')):
+            atom_groups = json.loads(Path(file).read_text())
+            chopping    = self._generate_chopping(atom_groups)
+            method      = "GeoStaS Hierarchical"
+
+            segmentations.append((method, len(atom_groups), chopping))
+
+        return segmentations
+
+    def _generate_chopping(self, atom_groups):
         """
         Input: [[1, 2, 3], [10, 11, 20, 21], ...]
         Output: 1-3,10-11_20,21,...
@@ -36,27 +54,7 @@ class Parser(SegmentationParser):
 
         group_descriptions = []
         for i in range(1, len(groupings.keys()) + 1):
-            group_descriptions.append('_'.join([f"{start}-{end}" for start, end in groupings[i]]))
+            range_description = [f"{start}-{end}" for start, end in groupings[i]]
+            group_descriptions.append('_'.join(range_description))
 
         return ','.join(group_descriptions)
-
-    def parse(self):
-        segmentations = []
-
-        for file in sorted(Path(self.path).glob('clustering_kmeans_*.json')):
-            k           = int(re.findall(r'\d\d', Path(file).stem)[0])
-            atom_groups = json.loads(Path(file).read_text())
-            chopping    = self.generate_geostas_chopping(atom_groups)
-            method      = f"GeoStaS K-means"
-
-            segmentations.append((method, len(atom_groups), chopping))
-
-        for file in sorted(Path(self.path).glob('clustering_hier_*.json')):
-            k           = int(re.findall(r'\d\d', Path(file).stem)[0])
-            atom_groups = json.loads(Path(file).read_text())
-            chopping    = self.generate_geostas_chopping(atom_groups)
-            method      = f"GeoStaS Hierarchical"
-
-            segmentations.append((method, len(atom_groups), chopping))
-
-        return segmentations
