@@ -8,12 +8,12 @@ import lib.util as util
 
 
 class NormalModes:
-    def __init__(self, frame_count=100, magnitude_scale=0.1, mode_count=1):
+    def __init__(self, frame_count=100, vector_scale=2.5, mode_count=1):
         """
         NormalModes object with input parameters.
         """
         self.frame_count = frame_count
-        self.magnitude_scale = magnitude_scale
+        self.vector_scale = vector_scale
         self.mode_count = mode_count
 
         self.coordinates = None
@@ -80,8 +80,10 @@ class NormalModes:
                     magnitude, _, line = line.partition(' ')
                     vector_coordinates = line.split(' ')
 
-                    magnitude = float(magnitude) * self.magnitude_scale
-                    vector_coordinates = (magnitude * float(vc) for vc in vector_coordinates)
+                    # Note: magnitude recorded in the file is currently unused,
+                    # it sometimes creates trajectories that are too large
+
+                    vector_coordinates = (float(vc) for vc in vector_coordinates)
                     vectors = np.array(self._group_in_threes(vector_coordinates))
 
                     self.modes.append((mode, vectors))
@@ -98,13 +100,13 @@ class NormalModes:
         # Forward trajectory
         for _ in range(0, self.frame_count // 2):
             for _, vectors in self.modes[:self.mode_count]:
-                coordinates = coordinates + vectors
+                coordinates = coordinates + vectors * self.vector_scale
             trajectory.append(coordinates)
 
         # Backward trajectory
         for _ in range(0, self.frame_count // 2):
             for _, vectors in self.modes[:self.mode_count]:
-                coordinates = coordinates - vectors
+                coordinates = coordinates - vectors * self.vector_scale
             trajectory.append(coordinates)
 
         n_atoms = self.coordinates.shape[0]
