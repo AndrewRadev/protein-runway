@@ -4,7 +4,10 @@ import csv
 import json
 from pathlib import Path
 
-from lib.segmentation_parsers import GeostasParser, ChainsawParser
+from lib.segmentation import (
+    geostas,
+    chainsaw
+)
 
 class TestSegmentationParser(unittest.TestCase):
     def setUp(self):
@@ -15,15 +18,15 @@ class TestSegmentationParser(unittest.TestCase):
         self.root_dir.cleanup()
 
     def test_geostas_chopping(self):
-        geostas = GeostasParser('unused/')
+        parser = geostas.Parser('unused/')
 
         atom_groups = [[1, 2, 3], [10, 11, 20, 21]]
-        chops = geostas.generate_geostas_chopping(atom_groups)
+        chops = parser._generate_chopping(atom_groups)
 
         self.assertEqual(chops, '1-3,10-11_20-21')
 
         atom_groups = [[1, 2, 3], [5], [10, 11, 20, 21]]
-        chops = geostas.generate_geostas_chopping(atom_groups)
+        chops = parser._generate_chopping(atom_groups)
 
         self.assertEqual(chops, '1-3,5-5,10-11_20-21')
 
@@ -33,9 +36,9 @@ class TestSegmentationParser(unittest.TestCase):
             ['<unused>', '<unused>', 6, 2, '1-3,10-12', '<unused>', '<unused>']
         )
 
-        chainsaw = ChainsawParser(self.root_path / 'chainsaw.tsv')
+        parser = chainsaw.Parser(self.root_path / 'chainsaw.tsv')
+        result = list(parser.parse())
 
-        result = chainsaw.parse()
         exp_result = [(
             'Chainsaw',
             '2',
@@ -50,8 +53,9 @@ class TestSegmentationParser(unittest.TestCase):
             [10, 11, 12, 50, 60],
         ])
 
-        geostas = GeostasParser(self.root_dir.name)
-        result = geostas.parse()
+        parser = geostas.Parser(self.root_dir.name)
+        result = list(parser.parse())
+
         self.assertEqual(
             result,
             [('GeoStaS Hierarchical', 2, '1-3,10-12_50-50_60-60')],
@@ -62,8 +66,8 @@ class TestSegmentationParser(unittest.TestCase):
             [10, 11, 12],
             [50, 60]
         ])
-        geostas = GeostasParser(self.root_dir.name)
-        result = geostas.parse()
+        parser = geostas.Parser(self.root_dir.name)
+        result = list(parser.parse())
 
         self.assertEqual(
             result,

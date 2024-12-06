@@ -5,9 +5,6 @@ from . import SegmentationParser
 
 
 class Parser(SegmentationParser):
-    def __init__(self, path):
-        super().__init__(path)
-
     def parse(self):
         for file in sorted(Path(self.path).glob('clustering_kmeans_*.json')):
             atom_groups = json.loads(Path(file).read_text())

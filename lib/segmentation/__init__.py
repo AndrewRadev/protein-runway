@@ -1,5 +1,8 @@
-from abc import abstractmethod
 import csv
+from abc import abstractmethod
+from collections.abc import Iterator
+from typing import Tuple
+from pathlib import Path
 
 
 def write_segmentations(seg_objects, output_file):
@@ -21,9 +24,20 @@ def write_segmentations(seg_objects, output_file):
 
 
 class SegmentationParser:
-    def __init__(self, path):
+    def __init__(self, path: Path|str):
+        """
+        The intended input is a filesystem path where segmentation data can be
+        found.
+
+        TODO multiple paths
+        """
         self.path = path
 
     @abstractmethod
-    def parse():
+    def parse(self) -> Iterator[Tuple[str, int, str]]:
+        """
+        The return value is ("<method name>", <number of domains>, "<chopping>").
+
+        They could be collected into a list or yield-ed.
+        """
         raise NotImplementedError

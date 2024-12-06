@@ -4,9 +4,6 @@ from . import SegmentationParser
 
 
 class Parser(SegmentationParser):
-    def __init__(self, path):
-        super().__init__(path)
-
     def parse(self):
         rows = self._read_csv_rows(self.path, delimiter='\t')
         data = rows[0]
