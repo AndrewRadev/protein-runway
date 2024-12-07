@@ -39,8 +39,15 @@ class Trajectory:
         self.mda_universe = mda_universe
 
     @property
+    def coordinates(self):
+        return self.mda_universe.atoms.positions
+
+    @property
     def frames(self):
         return self.mda_universe.trajectory
+
+    def __next__(self):
+        return next(self.mda_universe.trajectory)
 
     def select_atoms(self, *args):
         return self.mda_universe.select_atoms(*args)
