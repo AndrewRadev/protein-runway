@@ -1,7 +1,7 @@
 from snakemake.io import glob_wildcards
 
 from lib.trajectory import Trajectory
-from lib.normal_modes import NormalModes
+from lib.normal_modes import NormalModes, generate_nmd_from_pdb
 from lib.segmentation import (
     write_segmentations,
     geostas,
@@ -141,8 +141,7 @@ rule build_nmd_file:
     benchmark:
         "benchmarks/build_nmd/{protein_name}.tsv"
     run:
-        nmd_traj = NormalModes()
-        nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file, output.nmd_file)
+        generate_nmd_from_pdb(input.pdb_file, output.nmd_file)
 
 rule build_nmd_trajectory:
     input:
