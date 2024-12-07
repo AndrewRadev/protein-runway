@@ -16,7 +16,7 @@ from lib.segmentation import (
     ParsingError,
 )
 
-class TestSegmentationParser(unittest.TestCase):
+class TestSegmentation(unittest.TestCase):
     def setUp(self):
         self.root_dir = tempfile.TemporaryDirectory()
         self.root_path = Path(self.root_dir.name)
