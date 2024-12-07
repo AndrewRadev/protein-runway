@@ -63,6 +63,39 @@ class NormalModesTest(unittest.TestCase):
         trajectory = nm.generate_trajectory(frame_count=10)
         self.assertEqual(len(trajectory.frames), 10)
 
+        nm.coordinates = [
+            np.array([1, 1, 1]),
+            np.array([2, 2, 2]),
+        ]
+        nm.modes = [
+            ('mode1', np.array([[2, 2, 2], [-2, -2, -2]])),
+            ('mode2', np.array([[3, 3, 3], [-3, -3, -3]])),
+        ]
+
+        # Apply first mode:
+        trajectory = nm.generate_trajectory(frame_count=4, vector_scale=1, mode_indices=0)
+        next(trajectory)
+        self.assertEqual(trajectory.coordinates.tolist(), [
+            [3, 3, 3],
+            [0, 0, 0],
+        ])
+
+        # Apply second mode:
+        trajectory = nm.generate_trajectory(frame_count=4, vector_scale=1, mode_indices=1)
+        next(trajectory)
+        self.assertEqual(trajectory.coordinates.tolist(), [
+            [4, 4, 4],
+            [-1, -1, -1],
+        ])
+
+        # Apply both modes
+        trajectory = nm.generate_trajectory(frame_count=4, vector_scale=1, mode_indices=range(0, 2))
+        next(trajectory)
+        self.assertEqual(trajectory.coordinates.tolist(), [
+            [6, 6, 6],
+            [-3, -3, -3],
+        ])
+
     def test_validate_modes(self):
         nm = NormalModes()
 

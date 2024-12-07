@@ -110,22 +110,41 @@ class NormalModes:
 
         self._validate_modes()
 
-    def generate_trajectory(self, frame_count=100, vector_scale=2.5, mode_count=1):
+    def generate_trajectory(self, frame_count=100, vector_scale=2.5, mode_indices=0):
         """
-        Generate a trajectory that visualises these modes
+        Generate a trajectory that visualises these modes.
+
+        The frame count is expected to be an even number. The first frame is
+        the initial coordinates, then the animation applies the vectors
+        forward, then back. The last frame should also be the initial
+        coordinates, provided there are no numerical errors.
+
+        By default, the first mode is used, but you can provide the index in
+        `self.modes` to use by changing `mode_indices`. If that input is given
+        as a range, the whole range of modes will be used to generate the
+        trajectory.
+
+        The `vector_scale` parameter simply controls how much to scale the
+        vectors to produce a clearly visible trajectory. Setting it too high
+        might result in very large changes to the visualization.
         """
         coordinates = self.coordinates.copy()
-        trajectory = []
+        trajectory = [coordinates]
 
-        # Forward trajectory
-        for _ in range(0, frame_count // 2):
-            for _, vectors in self.modes[:mode_count]:
+        if type(mode_indices) is range:
+            target_modes = self.modes[mode_indices.start:mode_indices.stop]
+        else:
+            target_modes = [self.modes[mode_indices]]
+
+        # Forward trajectory, half the frames without the first one:
+        for _ in range(0, (frame_count - 2) // 2):
+            for _, vectors in target_modes:
                 coordinates = coordinates + vectors * vector_scale
             trajectory.append(coordinates)
 
-        # Backward trajectory
+        # Backward trajectory, half the frames
         for _ in range(0, frame_count // 2):
-            for _, vectors in self.modes[:mode_count]:
+            for _, vectors in target_modes:
                 coordinates = coordinates - vectors * vector_scale
             trajectory.append(coordinates)
 
