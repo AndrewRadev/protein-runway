@@ -6,6 +6,9 @@ from prody import parsePDB, writeNMD, EDA, Ensemble
 
 import lib.util as util
 
+class ValidationError(Exception):
+    pass
+
 
 class NormalModes:
     def __init__(self, frame_count=100, vector_scale=2.5, mode_count=1):
@@ -129,8 +132,12 @@ class NormalModes:
         """
         Ensure that the modes' shapes match the coordinates.
         """
-        for _, vectors in self.modes:
-            assert vectors.shape == self.coordinates.shape
+        for mode, vectors in self.modes:
+            if vectors.shape != self.coordinates.shape:
+                message = 'Vectors and coordinates mismatch in mode {}: {} != {}'.format(
+                    mode, vectors.shape, self.coordinates.shape
+                )
+                raise ValidationError(message)
 
     def _group_in_threes(self, flat_coordinates):
         return list(util.batched(flat_coordinates, n=3, strict=True))

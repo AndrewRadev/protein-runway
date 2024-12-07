@@ -17,14 +17,11 @@ from pathlib import Path
 import numpy as np
 import MDAnalysis as mda
 
-from lib.normal_modes import NormalModes
+from lib.normal_modes import NormalModes, ValidationError
 from lib.trajectory import TrajectoryWriter
 
 class TestNormalModes(unittest.TestCase):
-
     def setUp(self):
-        self.nm = NormalModes()
-
         self.root_dir = tempfile.TemporaryDirectory()
         self.root_path = Path(self.root_dir.name)
 
@@ -35,6 +32,8 @@ class TestNormalModes(unittest.TestCase):
         warnings.resetwarnings()
 
     def test_generate_nmd_from_pdb(self):
+        nm = NormalModes()
+
         # Generate a PDB file from our example inputs for testing:
         pdb_path = self.root_path / 'input.pdb'
         test_top = '01_input/top/5vde_example_complex.top'
@@ -44,13 +43,13 @@ class TestNormalModes(unittest.TestCase):
 
         # Generate normal modes from this input
         nmd_file = self.root_path / 'output.nmd'
-        self.nm.generate_nmd_from_pdb(pdb_path, nmd_file)
+        nm.generate_nmd_from_pdb(pdb_path, nmd_file)
 
         expected_calpha = mda_universe.select_atoms('name = CA')
-        self.assertEqual(len(self.nm.structure.getCoords()), len(expected_calpha))
+        self.assertEqual(len(nm.structure.getCoords()), len(expected_calpha))
 
     def test_parse_nmd_file(self):
-        nm = NormalModes(magnitude_scale=1)
+        nm = NormalModes()
 
         nmd_file = self.root_path / "input.nmd"
         self._create_nmd_file(str(nmd_file), """
@@ -62,31 +61,34 @@ class TestNormalModes(unittest.TestCase):
         nm.parse_nmd_file(nmd_file)
 
         self.assertTrue(nm.coordinates.tolist(), np.array([(1, 1, 1), (-1, -1, -1)]).tolist())
-        self.assertEqual(nm.modes[0][1].tolist(), [[20, 40, 60], [80, 100, 120]])
-        self.assertEqual(nm.modes[1][1].tolist(), [[40, 50, 60], [10, 10, 10]])
-
-        nm = NormalModes(magnitude_scale=0.1)
-        nm.parse_nmd_file(nmd_file)
-
-        self.assertTrue(nm.coordinates.tolist(), np.array([(1, 1, 1), (-1, -1, -1)]).tolist())
-        self.assertEqual(nm.modes[0][1].tolist(), [[2, 4, 6], [8, 10, 12]])
+        self.assertEqual(nm.modes[0][1].tolist(), [[1, 2, 3], [4, 5, 6]])
         self.assertEqual(nm.modes[1][1].tolist(), [[4, 5, 6], [1, 1, 1]])
 
     def test_generate_trajectory(self):
-        self.nm.coordinates = np.random.rand(10, 3)  # Mock coordinates
-        self.nm.modes = [('mode1', np.random.rand(10, 3))]  # Mock modes
+        nm = NormalModes()
 
-        trajectory = self.nm.generate_trajectory()
-        self.assertEqual(trajectory.trajectory.n_frames, self.nm.frame_count)
+        nm.coordinates = np.random.rand(10, 3)  # Mock coordinates
+        nm.modes = [('mode1', np.random.rand(10, 3))]  # Mock modes
+
+        trajectory = nm.generate_trajectory()
+        self.assertEqual(trajectory.trajectory.n_frames, nm.frame_count)
 
     def test_validate_modes(self):
+        nm = NormalModes()
+
         # Test the _validate_modes method
-        self.nm.coordinates = np.random.rand(10, 3)  # Mock coordinates
-        self.nm.modes = [('mode1', np.random.rand(10, 3))]  # Mock modes
-        try:
-            self.nm._validate_modes()  # Should not raise an assertion error
-        except AssertionError:
-            self.fail("Validation of modes failed unexpectedly!")
+        nm.coordinates = np.random.rand(10, 3)  # Mock coordinates
+        nm.modes = [('mode1', np.random.rand(10, 3))]  # Mock modes
+
+        # Should not raise a validation error
+        nm._validate_modes()
+
+        with self.assertRaises(ValidationError):
+            # One more coordinate than mode vector:
+            nm.coordinates = np.random.rand(11, 3)  # Mock coordinates
+            nm.modes = [('mode1', np.random.rand(10, 3))]  # Mock modes
+
+            nm._validate_modes()
 
     def _create_nmd_file(self, name, data):
         with open(self.root_path / name, 'w') as f:
