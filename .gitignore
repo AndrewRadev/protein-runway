@@ -10,6 +10,9 @@
 # Final output of scripts:
 03_output/*
 
+# Extra information, benchmarks, charts:
+04_extra/*
+
 # Benchmarks:
 benchmarks/*
 
