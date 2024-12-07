@@ -136,13 +136,15 @@ class NormalModes:
         else:
             target_modes = [self.modes[mode_indices]]
 
-        # Forward trajectory, half the frames without the first one:
+        # Forward trajectory, half the frames without the first one and the
+        # last one:
         for _ in range(0, (frame_count - 2) // 2):
             for _, vectors in target_modes:
                 coordinates = coordinates + vectors * vector_scale
             trajectory.append(coordinates)
 
-        # Backward trajectory, half the frames
+        # Backward trajectory, half the frames, ending in the original
+        # coordinates:
         for _ in range(0, frame_count // 2):
             for _, vectors in target_modes:
                 coordinates = coordinates - vectors * vector_scale
