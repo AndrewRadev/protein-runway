@@ -9,7 +9,7 @@ protein_name=$1
 
 mkdir -p 04_extra/graphs/
 
-snakemake --dag 03_output/$protein_name.segmentation.tsv \
+snakemake --dag 03_output/$protein_name.segmentation.tsv 03_output/$protein_name.nmd_traj.pdb \
   | dot -Tsvg > 04_extra/graphs/dag.svg
-snakemake --filegraph 03_output/$protein_name.segmentation.tsv \
+snakemake --filegraph 03_output/$protein_name.segmentation.tsv 03_output/$protein_name.nmd_traj.pdb \
   | dot -Tsvg > 04_extra/graphs/filegraph.svg
