@@ -27,13 +27,6 @@ jobs:
         run: |
           micromamba run -n protein-runway bash scripts/generate_snakemake_graphs.sh 5vde_example
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: workflow-graphs
-          path: |
-            04_extra/graphs/*.svg
-            04_extra/report.html
-
       - name: Run snakemake
         run: |
           micromamba run -n protein-runway snakemake
@@ -41,3 +34,10 @@ jobs:
       - name: Generate report
         run: |
           micromamba run -n protein-runway snakemake --report 04_extra/report.html
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workflow-graphs
+          path: |
+            04_extra/graphs/*.svg
+            04_extra/report.html
