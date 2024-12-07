@@ -3,7 +3,12 @@ import MDAnalysis as mda
 
 from lib.trajectory import TrajectoryWriter
 from lib.normal_modes import NormalModes
-from lib.segmentation_parsers import *
+from lib.segmentation import (
+    write_segmentations,
+    geostas,
+    merizo,
+    chainsaw,
+)
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
 
@@ -189,22 +194,23 @@ rule segment_by_geostas:
 
 rule collect_segmentation_intermediates:
     input:
+        static_pdb="02_intermediate/pdb/{protein_name}.static.pdb",
         chainsaw="02_intermediate/chainsaw/{protein_name}.tsv",
         merizo="02_intermediate/merizo/{protein_name}.tsv",
-        bio3d_geostas="02_intermediate/bio3d_geostas/{protein_name}/"
+        bio3d_geostas="02_intermediate/bio3d_geostas/{protein_name}/",
     output:
         segmentation="03_output/{protein_name}.segmentation.tsv",
         output_tsv="benchmarks/segment_intermediates/{protein_name}.tsv"
     benchmark:
         "benchmarks/segment_intermediates/{protein_name}.tsv"
     run:
-        #should change this to loop through all input files without manually instantiating somehow?
-        chainsaw_input = ChainsawParser(input.chainsaw)
-        merizo_input = MerizoParser(input.merizo)
-        geostas_input = GeostasParser(input.bio3d_geostas)
+        inputs = [
+            chainsaw.Parser(input.chainsaw),
+            merizo.Parser(input.merizo),
+            geostas.Parser(input.static_pdb, input.bio3d_geostas),
+        ]
 
-        #skipping merizo for now
-        write_segmentations([chainsaw_input, geostas_input], output.segmentation)
+        write_segmentations(inputs, output.segmentation)
 
 rule report_plot:
     input:
