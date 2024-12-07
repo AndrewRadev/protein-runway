@@ -4,12 +4,11 @@ import warnings
 from pathlib import Path
 
 import numpy as np
-import MDAnalysis as mda
 
 from lib.normal_modes import generate_nmd_from_pdb, NormalModes, ValidationError
-from lib.trajectory import TrajectoryWriter
+from lib.trajectory import Trajectory
 
-class TestNormalModes(unittest.TestCase):
+class NormalModesTest(unittest.TestCase):
     def setUp(self):
         self.root_dir = tempfile.TemporaryDirectory()
         self.root_path = Path(self.root_dir.name)
@@ -25,8 +24,9 @@ class TestNormalModes(unittest.TestCase):
         pdb_path = self.root_path / 'input.pdb'
         test_top = '01_input/top/5vde_example_complex.top'
         test_traj = '01_input/traj/5vde_example_10-20ns_100snap.trr'
-        mda_universe = mda.Universe(test_top, test_traj)
-        TrajectoryWriter(mda_universe).write_trajectory_file(pdb_path)
+
+        trajectory = Trajectory.from_paths(test_top, test_traj)
+        trajectory.write_frames(pdb_path)
 
         # Generate normal modes from this input
         nmd_file = self.root_path / 'output.nmd'
@@ -34,7 +34,7 @@ class TestNormalModes(unittest.TestCase):
 
         nm = NormalModes.from_nmd(nmd_file)
 
-        expected_calpha = mda_universe.select_atoms('name = CA')
+        expected_calpha = trajectory.select_atoms('name = CA')
         self.assertEqual(len(nm.coordinates), len(expected_calpha))
 
 
@@ -61,7 +61,7 @@ class TestNormalModes(unittest.TestCase):
         nm.modes = [('mode1', np.random.rand(10, 3))]  # Mock modes
 
         trajectory = nm.generate_trajectory(frame_count=10)
-        self.assertEqual(trajectory.trajectory.n_frames, 10)
+        self.assertEqual(len(trajectory.frames), 10)
 
     def test_validate_modes(self):
         nm = NormalModes()

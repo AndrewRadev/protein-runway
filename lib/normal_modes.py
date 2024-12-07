@@ -1,9 +1,8 @@
-import MDAnalysis as mda
-from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
 from pathlib import Path
 from prody import parsePDB, writeNMD, EDA, Ensemble
 
+from lib.trajectory import Trajectory
 import lib.util as util
 
 
@@ -130,21 +129,13 @@ class NormalModes:
                 coordinates = coordinates - vectors * vector_scale
             trajectory.append(coordinates)
 
-        n_atoms = self.coordinates.shape[0]
-        u = mda.Universe.empty(
-            n_atoms=n_atoms,
-            n_residues=n_atoms,
-            n_frames=frame_count,
-            atom_resindex=np.arange(n_atoms),
-            trajectory=True,
-        )
+        trajectory = Trajectory.from_ca_frames(trajectory, topology_attr={
+            'names': self.atomnames,
+            'resids': self.resids,
+            'resnames': self.resnames,
+        })
 
-        u.add_TopologyAttr('names', self.atomnames)
-        u.add_TopologyAttr('resids', self.resids)
-        u.add_TopologyAttr('resnames', self.resnames)
-        u.load_new(np.array(trajectory), format=MDAMemoryReader)
-
-        return u
+        return trajectory
 
     def _validate_modes(self):
         """
