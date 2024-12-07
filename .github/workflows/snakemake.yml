@@ -25,7 +25,7 @@ jobs:
 
       - name: Generate image artifacts
         run: |
-          bash scripts/generate_snakemake_graphs.sh 5vde_example
+          micromamba run -n protein-runway bash scripts/generate_snakemake_graphs.sh 5vde_example
 
       - uses: actions/upload-artifact@v4
         with:
