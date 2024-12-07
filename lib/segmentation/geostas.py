@@ -14,8 +14,7 @@ from pathlib import Path
 from collections.abc import Iterator
 from typing import Tuple
 
-import MDAnalysis as mda
-
+from lib.trajectory import Trajectory
 from . import SegmentationParser
 
 
@@ -26,12 +25,12 @@ class Parser(SegmentationParser):
     def parse(self) -> Iterator[Tuple[str, int, str]]:
         pdb_path, clustering_directory_path = self.paths
 
-        mda_universe = mda.Universe(pdb_path)
-        mda_atoms    = mda_universe.select_atoms('name = CA')
+        trajectory = Trajectory.from_paths(pdb_path)
+        atom_data  = trajectory.select_atoms('name = CA')
 
         for file in sorted(Path(clustering_directory_path).glob('clustering_kmeans_*.json')):
             atom_groups    = json.loads(Path(file).read_text())
-            residue_groups = self._translate_atoms_to_residues(mda_atoms, atom_groups)
+            residue_groups = self._translate_atoms_to_residues(atom_data, atom_groups)
             chopping       = self._generate_chopping(residue_groups)
             method         = "GeoStaS K-means"
 
@@ -39,13 +38,13 @@ class Parser(SegmentationParser):
 
         for file in sorted(Path(clustering_directory_path).glob('clustering_hier_*.json')):
             atom_groups    = json.loads(Path(file).read_text())
-            residue_groups = self._translate_atoms_to_residues(mda_atoms, atom_groups)
+            residue_groups = self._translate_atoms_to_residues(atom_data, atom_groups)
             chopping       = self._generate_chopping(residue_groups)
             method         = "GeoStaS Hierarchical"
 
             yield (method, len(residue_groups), chopping)
 
-    def _translate_atoms_to_residues(self, mda_atoms, atom_groups):
+    def _translate_atoms_to_residues(self, atom_data, atom_groups):
         """
         The output of GeoStaS is (alpha carbon) atom indices (1-indexed) while
         we need residues. We need to translate the sequential atom index into
@@ -53,7 +52,7 @@ class Parser(SegmentationParser):
         """
         return [
             [
-                mda_atoms[atom_index - 1].resnum
+                atom_data[atom_index - 1].resnum
                 for atom_index in atom_indices
             ]
             for atom_indices in atom_groups

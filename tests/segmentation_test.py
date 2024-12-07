@@ -5,10 +5,9 @@ import json
 import warnings
 from pathlib import Path
 
-import MDAnalysis as mda
-from MDAnalysis.coordinates.memory import MemoryReader as MDAMemoryReader
 import numpy as np
 
+from lib.trajectory import Trajectory
 from lib.segmentation import (
     chainsaw,
     merizo,
@@ -16,7 +15,7 @@ from lib.segmentation import (
     ParsingError,
 )
 
-class TestSegmentation(unittest.TestCase):
+class SegmentationTest(unittest.TestCase):
     def setUp(self):
         self.root_dir = tempfile.TemporaryDirectory()
         self.root_path = Path(self.root_dir.name)
@@ -131,18 +130,12 @@ class TestSegmentation(unittest.TestCase):
     def _create_pdb_file(self, name, atom_count):
         coordinates = np.zeros((atom_count, 3))
 
-        u = mda.Universe.empty(
-            n_atoms=atom_count,
-            n_residues=atom_count,
-            n_frames=1,
-            atom_resindex=np.arange(atom_count),
-        )
-        u.load_new(coordinates, format=MDAMemoryReader)
-        u.add_TopologyAttr('names', ['CA'] * atom_count)
-        u.add_TopologyAttr('resids', np.arange(atom_count) + 1)
+        trajectory = Trajectory.from_ca_frames([coordinates], topology_attr={
+            'names': ['CA'] * atom_count,
+            'resids': np.arange(atom_count) + 1,
+        })
 
-        with warnings.catch_warnings(action="ignore"):
-            u.atoms.write(self.root_path / name)
+        trajectory.write_static(self.root_path / name)
 
     def _create_chainsaw_clustering_file(self, name, data):
         with open(self.root_path / name, 'w') as f:
