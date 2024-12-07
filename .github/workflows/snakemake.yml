@@ -26,8 +26,10 @@ jobs:
       - name: Generate image artifacts
         run: |
           mkdir -p 04_extra/
-          micromamba run -n protein-runway snakemake --dag 03_output/5vde_example.segmentation.tsv | micromamba run -n protein-runway dot -Tsvg > 04_extra/dag.svg
-          micromamba run -n protein-runway snakemake --filegraph 03_output/5vde_example.segmentation.tsv | micromamba run -n protein-runway dot -Tsvg > 04_extra/filegraph.svg
+          micromamba run -n protein-runway snakemake --dag 03_output/5vde_example.segmentation.tsv \
+            | micromamba run -n protein-runway dot -Tsvg > 04_extra/dag.svg
+          micromamba run -n protein-runway snakemake --filegraph 03_output/5vde_example.segmentation.tsv \
+            | micromamba run -n protein-runway dot -Tsvg > 04_extra/filegraph.svg
 
       - uses: actions/upload-artifact@v4
         with:
