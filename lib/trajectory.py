@@ -6,6 +6,20 @@ import numpy as np
 
 
 class Trajectory:
+    """
+    A Trajectory object is a wrapper for the MDAnalysis Universe class. It
+    encapsulates some MDA-specific function calls to make it simpler to use for
+    the purposes of this codebase.
+
+    It's possible to construct a Trajectory from any MDAnalysis Universe.
+    However, it would usually happen from topology and trajectory paths (or a
+    single combined PDB). It's also possible to create one from an array of
+    alpha-carbon coordinates.
+
+    If needed, more delegation methods can be added from a Trajectory to the
+    inner Universe to avoid other classes directly interacting with it.
+    """
+
     @staticmethod
     def from_paths(topology_path, trajectory_path=None):
         if trajectory_path:
