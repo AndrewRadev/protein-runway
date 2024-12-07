@@ -1,3 +1,14 @@
+"""
+Bio3D is an R package that encapsulates different tools for biological
+structure analysis. The GeoStaS domain finder tries to locate rigid domains
+based on trajectory movements. The generated files come from a custom script
+written in R, so their format is controlled by our workflow rather than by the
+external project itself.
+
+Documentation can be found at:
+<http://thegrantlab.org/bio3d/reference/geostas.html>
+"""
+
 import json
 from pathlib import Path
 from collections.abc import Iterator
