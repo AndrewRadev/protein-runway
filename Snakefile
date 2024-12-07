@@ -12,8 +12,13 @@ from lib.segmentation import (
 
 protein_names = glob_wildcards("01_input/traj/{protein_name}_10-20ns_100snap.trr").protein_name
 
-MERIZO_OK   = 'vendor/merizo_ok.txt'
-CHAINSAW_OK = 'vendor/chainsaw_ok.txt'
+# Rules to download external projects. Important outputs:
+# - vendor/merizo_ok.txt
+# - vendor/chainsaw_ok.txt
+include: "workflow/vendor.smk"
+
+# Rules to generate extra information about the runs
+include: "workflow/extra.smk"
 
 rule all:
     input:
@@ -21,62 +26,10 @@ rule all:
         expand("03_output/{protein_name}.nmd_traj.pdb", protein_name=protein_names),
         aggregated_csv=report("04_extra/benchmarks/aggregated_runtime.csv")
 
-rule merizo_setup:
-    output: directory('vendor/merizo')
-    shell:
-        """
-        # Using our own fork of Merizo to fix an issue with histidine residues:
-        git clone https://github.com/AndrewRadev/Merizo vendor/merizo
-        cd vendor/merizo
-
-        # Check out known commit:
-        git checkout d44ae81
-
-        # Delete git history to save space:
-        rm -rf .git/
-        """
-
-rule merizo_qa:
-    input: 'vendor/merizo'
-    output: MERIZO_OK
-    shell:
-        """
-        python vendor/merizo/predict.py -i vendor/merizo/examples/2xdqA.pdb > {output}
-        """
-
-rule chainsaw_setup:
-    output: directory('vendor/chainsaw')
-    shell:
-        """
-        git clone https://github.com/JudeWells/Chainsaw vendor/chainsaw
-        cd vendor/chainsaw
-
-        # Check out known commit:
-        git checkout 9ced6e6
-
-        # Delete git history to save space:
-        rm -rf .git/
-
-        # Compile stride:
-        cd stride
-        tar -xzf stride.tgz
-        make
-        """
-
-rule chainsaw_qa:
-    input: 'vendor/chainsaw'
-    output: CHAINSAW_OK
-    shell:
-        """
-        python vendor/chainsaw/get_predictions.py \
-            --structure_file vendor/chainsaw/example_files/AF-A0A1W2PQ64-F1-model_v4.pdb \
-            --output {output}
-        """
-
-rule get_chainsaw_clustering:
+rule segment_by_chainsaw:
     input:
         structure_file="02_intermediate/pdb/{protein_name}.static.pdb",
-        chainsaw_ok=CHAINSAW_OK
+        chainsaw_ok="vendor/chainsaw_ok.txt"
     output:
         output_file="02_intermediate/chainsaw/{protein_name}.tsv",
         benchmark_tsv="04_extra/benchmarks/chainsaw_clustering/{protein_name}.tsv",
@@ -94,10 +47,10 @@ rule get_chainsaw_clustering:
         fi
         """
 
-rule get_merizo_clustering:
+rule segment_by_merizo:
     input:
         structure_file="02_intermediate/pdb/{protein_name}.static.pdb",
-        merizo_ok=MERIZO_OK
+        merizo_ok="vendor/merizo_ok.txt"
     output:
         output_file="02_intermediate/merizo/{protein_name}.tsv",
         benchmark_tsv="04_extra/benchmarks/merizo_clustering/{protein_name}.tsv"
@@ -112,7 +65,7 @@ rule get_merizo_clustering:
             > {output.output_file}
         """
 
-rule build_pdbs:
+rule build_pdb_files:
     input:
         topology="01_input/top/{protein_name}_complex.top",
         trajectory="01_input/traj/{protein_name}_10-20ns_100snap.trr"
@@ -146,7 +99,7 @@ rule build_nmd_file:
         nmd_traj = NormalModes()
         nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file, output.nmd_file)
 
-rule build_nmd_trajectory:
+rule build_trajectory_from_nmd:
     input:
         nmd_file="02_intermediate/pca/{protein_name}.nmd",
     output:
@@ -211,54 +164,3 @@ rule collect_segmentation_intermediates:
         ]
 
         write_segmentations(inputs, output.segmentation)
-
-rule report_plot:
-    input:
-        tsv_files=expand("04_extra/benchmarks/{rule_name}/{protein_name}.tsv",
-                         rule_name=["amsm", "build_nmd", "build_pdbs",
-                                    "nmd_trajectory", "geostas", "segment_intermediates",
-                                    "merizo_clustering", "chainsaw_clustering"],
-                         protein_name=protein_names)
-    output:
-        aggregated_csv=report("04_extra/benchmarks/aggregated_runtime.csv"),
-        runtime_plot=report("04_extra/benchmarks/runtime_plot.png")
-    run:
-        import pandas as pd
-
-        # Using Agg to avoid problems with threading:
-        # https://matplotlib.org/stable/users/explain/figure/backends.html
-        #
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-
-        from pathlib import Path
-
-        def aggregate_benchmarks(tsv_files, output_file):
-            benchmarks = []
-            for file in tsv_files:
-                data = pd.read_csv(file, sep="\t")
-                rule_name = Path(file).parts[-2]  # Extract rule name
-                sample_name = Path(file).stem  # Extract protein name
-                runtime = data["cpu_time"].sum() if "cpu_time" in data.columns else 0
-                benchmarks.append({"rule": rule_name, "sample": sample_name, "runtime": runtime})
-            df = pd.DataFrame(benchmarks)
-            df.to_csv(output_file, index=False)
-            print(f"Aggregated data saved to {output_file}")
-
-        def plot_sample_runtimes(data_file, output_plot):
-            df = pd.read_csv(data_file)
-            plt.figure(figsize=(12, 8))
-            for rule in df["rule"].unique():
-                subset = df[df["rule"] == rule]
-                plt.scatter(subset["runtime"], [rule] * len(subset), label=rule, alpha=0.7)
-            plt.xlabel("Runtime (seconds)")
-            plt.ylabel("Rule")
-            plt.title("Runtime of Snakemake Rules by Sample")
-            plt.tight_layout()
-            plt.savefig(output_plot)
-            plt.close()
-            print(f"Runtime plot saved to {output_plot}")
-
-        aggregate_benchmarks(input.tsv_files, output.aggregated_csv)
-        plot_sample_runtimes(output.aggregated_csv, output.runtime_plot)
