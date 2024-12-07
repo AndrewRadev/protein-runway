@@ -194,10 +194,10 @@ rule segment_by_geostas:
 
 rule collect_segmentation_intermediates:
     input:
+        static_pdb="02_intermediate/pdb/{protein_name}.static.pdb",
         chainsaw="02_intermediate/chainsaw/{protein_name}.tsv",
         merizo="02_intermediate/merizo/{protein_name}.tsv",
         bio3d_geostas="02_intermediate/bio3d_geostas/{protein_name}/",
-        static_pdb="02_intermediate/pdb/{protein_name}.static.pdb",
     output:
         segmentation="03_output/{protein_name}.segmentation.tsv",
         output_tsv="benchmarks/segment_intermediates/{protein_name}.tsv"

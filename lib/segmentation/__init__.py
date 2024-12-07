@@ -38,9 +38,13 @@ class SegmentationParser:
     @abstractmethod
     def parse(self) -> Iterator[Tuple[str, int, str]]:
         """
-        The return value is ("<method name>", <number of domains>, "<chopping>").
+        The return value is a collection of items of the form:
 
-        They could be collected into a list or yield-ed.
+            ("<method name>", <number of domains>, "<chopping>")
+
+        They could be collected into a list or yield-ed. The
+        `write_segmentations` function only expects that this method returns an
+        iterable object.
         """
         raise NotImplementedError
 

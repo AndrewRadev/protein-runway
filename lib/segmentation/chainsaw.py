@@ -18,7 +18,7 @@ class Parser(SegmentationParser):
         super().__init__(csv_path)
 
     def parse(self) -> Iterator[Tuple[str, int, str]]:
-        csv_path = self.paths[0]
+        (csv_path,) = self.paths
 
         rows = _read_csv_rows(csv_path, delimiter='\t')
 
