@@ -1,14 +1,3 @@
-# NMD structure:
-#
-# atomnames CA CA CA ...
-# resnames SER ARG LEU ...
-# resids 0 1 2 3 4 5 6 7 8 11 12 ... <- Note: possible to have gaps
-# coordinates 54.260 50.940 73.060 ...
-# mode 1 29.61 -0.008 -0.005 0.012 ...
-# mode 2 18.28 -0.009 0.004 -0.008 ...
-# mode 3 17.50 -0.027 -0.025 0.023 ...
-# mode <N> <magnitude> <x1> <y1> <z1> <x2> <y2> <z2> ...
-
 import unittest
 import tempfile
 import warnings
@@ -17,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import MDAnalysis as mda
 
-from lib.normal_modes import NormalModes, ValidationError
+from lib.normal_modes import generate_nmd_from_pdb, NormalModes, ValidationError
 from lib.trajectory import TrajectoryWriter
 
 class TestNormalModes(unittest.TestCase):
@@ -32,8 +21,6 @@ class TestNormalModes(unittest.TestCase):
         warnings.resetwarnings()
 
     def test_generate_nmd_from_pdb(self):
-        nm = NormalModes()
-
         # Generate a PDB file from our example inputs for testing:
         pdb_path = self.root_path / 'input.pdb'
         test_top = '01_input/top/5vde_example_complex.top'
@@ -43,10 +30,13 @@ class TestNormalModes(unittest.TestCase):
 
         # Generate normal modes from this input
         nmd_file = self.root_path / 'output.nmd'
-        nm.generate_nmd_from_pdb(pdb_path, nmd_file)
+        generate_nmd_from_pdb(pdb_path, nmd_file)
+
+        nm = NormalModes.from_nmd(nmd_file)
 
         expected_calpha = mda_universe.select_atoms('name = CA')
-        self.assertEqual(len(nm.structure.getCoords()), len(expected_calpha))
+        self.assertEqual(len(nm.coordinates), len(expected_calpha))
+
 
     def test_parse_nmd_file(self):
         nm = NormalModes()
@@ -70,8 +60,8 @@ class TestNormalModes(unittest.TestCase):
         nm.coordinates = np.random.rand(10, 3)  # Mock coordinates
         nm.modes = [('mode1', np.random.rand(10, 3))]  # Mock modes
 
-        trajectory = nm.generate_trajectory()
-        self.assertEqual(trajectory.trajectory.n_frames, nm.frame_count)
+        trajectory = nm.generate_trajectory(frame_count=10)
+        self.assertEqual(trajectory.trajectory.n_frames, 10)
 
     def test_validate_modes(self):
         nm = NormalModes()
