@@ -43,3 +43,7 @@ class SegmentationParser:
         They could be collected into a list or yield-ed.
         """
         raise NotImplementedError
+
+
+class ParsingError(Exception):
+    pass
