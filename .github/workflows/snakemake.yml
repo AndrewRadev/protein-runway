@@ -25,17 +25,19 @@ jobs:
 
       - name: Generate image artifacts
         run: |
-          mkdir -p 04_extra/
-          micromamba run -n protein-runway snakemake --dag 03_output/5vde_example.segmentation.tsv \
-            | micromamba run -n protein-runway dot -Tsvg > 04_extra/dag.svg
-          micromamba run -n protein-runway snakemake --filegraph 03_output/5vde_example.segmentation.tsv \
-            | micromamba run -n protein-runway dot -Tsvg > 04_extra/filegraph.svg
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: workflow-graphs
-          path: '04_extra/*.svg'
+          micromamba run -n protein-runway bash scripts/generate_snakemake_graphs.sh 5vde_example
 
       - name: Run snakemake
         run: |
           micromamba run -n protein-runway snakemake
+
+      - name: Generate report
+        run: |
+          micromamba run -n protein-runway snakemake --report 04_extra/report.html
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workflow-graphs
+          path: |
+            04_extra/graphs/*.svg
+            04_extra/report.html
