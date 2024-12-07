@@ -159,6 +159,18 @@ class ImportPDBOperator(bpy.types.Operator):
 
         atom_mesh_object.instance_type = 'VERTS'
 
+        # If there is a current collection that the ball was added into, we
+        # need to unlink it:
+        coll_all = representative_ball.users_collection
+        if len(coll_all) > 0:
+            coll_past = coll_all[0]
+        else:
+            coll_past = bpy.context.scene.collection
+
+        # Link to the target collection:
         self.collection_protein.objects.link(representative_ball)
+
+        # Unlink from the previous collection:
+        coll_past.objects.unlink(representative_ball)
 
         return atom_mesh_object
