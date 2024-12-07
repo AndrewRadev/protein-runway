@@ -39,10 +39,6 @@ class Trajectory:
         self.mda_universe = mda_universe
 
     @property
-    def coordinates(self):
-        return self.mda_universe.coordinates
-
-    @property
     def frames(self):
         return self.mda_universe.trajectory
 
