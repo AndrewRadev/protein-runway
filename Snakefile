@@ -1,8 +1,7 @@
 from snakemake.io import glob_wildcards
-import MDAnalysis as mda
 
-from lib.trajectory import TrajectoryWriter
-from lib.normal_modes import NormalModes
+from lib.trajectory import Trajectory
+from lib.normal_modes import NormalModes, generate_nmd_from_pdb
 from lib.segmentation import (
     write_segmentations,
     geostas,
@@ -78,14 +77,13 @@ rule build_pdb_files:
     benchmark:
         "04_extra/benchmarks/build_pdbs/{protein_name}.tsv"
     run:
-        u = mda.Universe(input.topology, input.trajectory)
-        writer = TrajectoryWriter(u)
+        trajectory = Trajectory.from_paths(input.topology, input.trajectory)
 
-        writer.write_static_file(output.static_pdb_file,   'protein')
-        writer.write_trajectory_file(output.traj_pdb_file, 'protein')
+        trajectory.write_static(output.static_pdb_file, 'protein')
+        trajectory.write_frames(output.traj_pdb_file, 'protein')
 
-        writer.write_trajectory_file(output.traj_ca_pdb_file, 'protein and name is CA')
-        writer.write_trajectory_file(output.traj_ca_dcd_file, 'protein and name is CA')
+        trajectory.write_frames(output.traj_ca_pdb_file, 'protein and name is CA')
+        trajectory.write_frames(output.traj_ca_dcd_file, 'protein and name is CA')
 
 rule build_nmd_file:
     input:
@@ -96,8 +94,7 @@ rule build_nmd_file:
     benchmark:
         "04_extra/benchmarks/build_nmd/{protein_name}.tsv"
     run:
-        nmd_traj = NormalModes()
-        nmd_traj = nmd_traj.generate_nmd_from_pdb(input.pdb_file, output.nmd_file)
+        generate_nmd_from_pdb(input.pdb_file, output.nmd_file)
 
 rule build_trajectory_from_nmd:
     input:
@@ -113,10 +110,9 @@ rule build_trajectory_from_nmd:
         #  that aren't connected, or perhaps that doesn't matter for the snakemake logic?
         nmd_traj = NormalModes()
         nmd_traj.parse_nmd_file(input.nmd_file)
-        mda_universe = nmd_traj.generate_trajectory()
 
-        writer = TrajectoryWriter(mda_universe)
-        writer.write_trajectory_file(output.traj_file)
+        trajectory = nmd_traj.generate_trajectory()
+        trajectory.write_frames(output.traj_file)
 
 rule generate_amsm:
     input:
