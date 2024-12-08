@@ -46,7 +46,7 @@ jobs:
       - name: Run sphinx
         run: |
           cd docs/
-          micromamba run -n protein-runway make html
+          make html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
