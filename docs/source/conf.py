@@ -22,10 +22,10 @@ extensions = [
         'sphinx.ext.autodoc',  # For docstring generation
         'sphinx.ext.napoleon', # Support for Google/NumPy docstrings
         'sphinx.ext.viewcode', # Source code links
-        'sphinx.ext.duration',
-        'sphinx.ext.autosummary',
+        'autoapi.extension',
     ]
-autosummary_generate = True  # Turn on sphinx.ext.autosummary
+# autosummary_generate = True  # Turn on sphinx.ext.autosummary
+autoapi_dirs = ['../../lib']
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

@@ -1,5 +1,7 @@
 MDAnalysis
+
 Sphinx
+sphinx-autoapi
 
 # For merizo:
 natsort
