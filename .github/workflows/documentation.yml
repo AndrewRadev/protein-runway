@@ -39,21 +39,14 @@ jobs:
         with:
             python-version: '3.11'
 
-      - uses: mamba-org/setup-micromamba@v2
-        with:
-          environment-file: micromamba_env.yml
-          cache-environment: true
-          cache-environment-key: ${{ hashFiles('micromamba_env.yml') }}
-          post-cleanup: 'none'
-
-      - name: Install pip dependencies
+      - name: Install sphinx
         run: |
-          micromamba run -n protein-runway pip install -r requirements.txt
+          pip install Sphinx
 
       - name: Run sphinx
         run: |
           cd docs/
-          micromamba run -n protein-runway make
+          micromamba run -n protein-runway make html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
