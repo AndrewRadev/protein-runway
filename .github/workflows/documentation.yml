@@ -46,6 +46,10 @@ jobs:
           cache-environment-key: ${{ hashFiles('micromamba_env.yml') }}
           post-cleanup: 'none'
 
+      - name: Install pip dependencies
+        run: |
+          micromamba run -n protein-runway pip install -r requirements.txt
+
       - name: Run sphinx
         run: |
           cd docs/
