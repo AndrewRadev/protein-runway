@@ -13,8 +13,8 @@
 # Extra information, benchmarks, charts:
 04_extra/*
 
-# Benchmarks:
-benchmarks/*
+# Documentation
+docs/_build/*
 
 # Environments and metadata:
 .venv/*

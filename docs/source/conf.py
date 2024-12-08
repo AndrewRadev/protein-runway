@@ -8,7 +8,7 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 project = 'protein-runway'
 copyright = '2024, Andrey Radev, Maria Krunic, Emma Rousseau, Evgeniya Polezhaeva'
@@ -22,9 +22,7 @@ extensions = [
         'sphinx.ext.autodoc',  # For docstring generation
         'sphinx.ext.napoleon', # Support for Google/NumPy docstrings
         'sphinx.ext.viewcode', # Source code links
-        'myst_parser',         # Markdown support
         'sphinx.ext.duration',
-        'sphinx.ext.doctest',
         'sphinx.ext.autosummary',
     ]
 
