@@ -1,3 +1,7 @@
+"""
+Generating normal modes, reading and writing mode data from/to files.
+"""
+
 import numpy as np
 from pathlib import Path
 from prody import parsePDB, writeNMD, EDA, Ensemble

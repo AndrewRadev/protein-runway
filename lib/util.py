@@ -1,3 +1,8 @@
+"""
+General-purpose utilities that can be used for various purposes across the
+project.
+"""
+
 import itertools
 
 def batched(iterable, n, *, strict=False):
