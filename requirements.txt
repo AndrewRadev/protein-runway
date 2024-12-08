@@ -1,4 +1,5 @@
 MDAnalysis
+Sphinx
 
 # For merizo:
 natsort
