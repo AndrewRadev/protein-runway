@@ -1,3 +1,7 @@
+"""
+Code that encapsulates interactions with an  MDAnalysis universe
+"""
+
 from pathlib import Path
 
 import MDAnalysis as mda

@@ -1,3 +1,7 @@
+"""
+Classes that interact with the outputs of different protein segmentations
+"""
+
 import csv
 from abc import abstractmethod
 from collections.abc import Iterator
@@ -5,25 +9,15 @@ from typing import Tuple
 from pathlib import Path
 
 
-def write_segmentations(seg_objects, output_file):
-    segmentations = []
-    columns = ['index', 'method', 'domain_count', 'chopping']
-    index = 1
-
-    for seg_object in seg_objects:
-        for method, domain_count, chopping in seg_object.parse():
-            segmentations.append((index, method, domain_count, chopping))
-            index += 1
-
-    with open(output_file, 'w') as f:
-        writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(columns)
-
-        for segmentation in segmentations:
-            writer.writerow(segmentation)
+class ParsingError(Exception):
+    pass
 
 
 class SegmentationParser:
+    """
+    The base class for all segmentation parsers.
+    """
+
     def __init__(self, *paths: list[Path|str]):
         """
         The intended inputs are filesystem paths where segmentation data can be
@@ -49,5 +43,22 @@ class SegmentationParser:
         raise NotImplementedError
 
 
-class ParsingError(Exception):
-    pass
+def write_segmentations(seg_objects: list[SegmentationParser], output_file: Path|str):
+    """
+    Invoke the given segmentation parsers and collect their output in a TSV.
+    """
+    segmentations = []
+    columns = ['index', 'method', 'domain_count', 'chopping']
+    index = 1
+
+    for seg_object in seg_objects:
+        for method, domain_count, chopping in seg_object.parse():
+            segmentations.append((index, method, domain_count, chopping))
+            index += 1
+
+    with open(output_file, 'w') as f:
+        writer = csv.writer(f, delimiter='\t', dialect='unix', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(columns)
+
+        for segmentation in segmentations:
+            writer.writerow(segmentation)

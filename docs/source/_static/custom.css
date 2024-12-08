@@ -1,1 +1,6 @@
-/* This file intentionally left blank. */
+table.align-default {
+    margin-left: 0 !important;
+}
+table {
+  width: 100%;
+}

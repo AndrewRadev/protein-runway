@@ -25,6 +25,7 @@ extensions = [
         'sphinx.ext.duration',
         'sphinx.ext.autosummary',
     ]
+autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
