@@ -4,7 +4,7 @@ import mathutils
 
 import MDAnalysis as mda
 
-from ..lib.segmentation import generate_domain_ranges
+from .segmentations_ui_list import extract_selected_segmentation
 
 TIMER_INTERVAL = 0.001
 
@@ -30,23 +30,13 @@ class AnimateTrajectoryOperator(bpy.types.Operator):
         """
         Called once when the operator is invoked
         """
+        scene             = context.scene
         atom_mesh_objects = context.selected_objects
         self.meshes       = [o.data for o in atom_mesh_objects]
 
-        pdb_path      = context.scene.ProteinRunway_pdb_path
-        self.universe = mda.Universe(pdb_path)
-
-        # TODO (2024-11-19) Duplicates ImportPDBOperator
-        scene = context.scene
-        segmentations = scene.ProteinRunway_segmentations
-        if len(segmentations) > 0:
-            segmentation_index = scene.ProteinRunway_segmentation_index
-            selected_segmentation = segmentations[segmentation_index]
-
-            self.domain_regions = generate_domain_ranges(selected_segmentation.chopping)
-        else:
-            # One domain for the entire protein:
-            self.domain_regions = [[range(1, len(u.atoms))]]
+        pdb_path            = context.scene.ProteinRunway_pdb_path
+        self.universe       = mda.Universe(pdb_path)
+        self.domain_regions = extract_selected_segmentation(scene, self.universe)
 
         context.window_manager.modal_handler_add(self)
         self.updating = False

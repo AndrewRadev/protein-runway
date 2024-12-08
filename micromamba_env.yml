@@ -7,6 +7,7 @@ dependencies:
   - python =3.11
   - prody
   - snakemake
+  - graphviz
 
   # For segmentation:
   - r-bio3d

@@ -10,6 +10,12 @@
 # Final output of scripts:
 03_output/*
 
+# Extra information, benchmarks, charts:
+04_extra/*
+
+# Benchmarks:
+benchmarks/*
+
 # Environments and metadata:
 .venv/*
 .micromamba/*
@@ -21,3 +27,6 @@ vendor/*
 # Blender build artefacts:
 blender/extension.zip
 blender/extension/wheels/*
+
+# Caching stuff
+__pycache__

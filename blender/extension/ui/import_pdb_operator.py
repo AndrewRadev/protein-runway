@@ -5,16 +5,21 @@ import bmesh
 
 import MDAnalysis as mda
 
-from ..lib.segmentation import generate_domain_ranges
+from .segmentations_ui_list import extract_selected_segmentation
 
 COLORS = [
     (1.0, 1.0, 1.0, 1),  # white
     (0.8, 0.1, 0.1, 1),  # red
     (0.1, 0.8, 0.1, 1),  # green
-    (0.1, 0.1, 0.8, 1),  # blue
+    (0.1, 0.1, 0.8, 1),  # light blue
     (0.8, 0.8, 0.1, 1),  # yellow
     (0.8, 0.1, 0.8, 1),  # violet
     (0.1, 0.8, 0.8, 1),  # cyan
+    (0.9, 0.5, 0.1, 1),  # orange
+    (0.7, 0.9, 0.1, 1),  # lime
+    (0.5, 0.1, 0.9, 1),  # purple
+    (0.1, 0.5, 0.9, 1),  # blue
+    (0.9, 0.1, 0.5, 1),  # magenta
 ]
 GRAY = (0.3, 0.3, 0.3, 1)
 
@@ -39,7 +44,7 @@ class ImportPDBOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
         try:
-            u = mda.Universe(pdb_path)
+            mda_universe = mda.Universe(pdb_path)
         except ValueError as e:
             self.report({'ERROR'}, f"MDAnalysis error: {e}")
             return {'CANCELLED'}
@@ -47,17 +52,9 @@ class ImportPDBOperator(bpy.types.Operator):
         self.collection_protein = bpy.data.collections.new(protein_name)
         scene.collection.children.link(self.collection_protein)
 
-        segmentations = scene.ProteinRunway_segmentations
-        if len(segmentations) > 0:
-            segmentation_index = scene.ProteinRunway_segmentation_index
-            selected_segmentation = segmentations[segmentation_index]
+        domain_regions = extract_selected_segmentation(scene, mda_universe)
 
-            domain_regions = generate_domain_ranges(selected_segmentation.chopping)
-        else:
-            # One domain for the entire protein:
-            domain_regions = [[range(1, len(u.atom_group))]]
-
-        atom_mesh_objects = self.draw_alpha_carbons(u, domain_regions, add_convex_hull)
+        atom_mesh_objects = self.draw_alpha_carbons(mda_universe, domain_regions, add_convex_hull)
 
         for o in atom_mesh_objects:
             o.select_set(True)
@@ -67,7 +64,7 @@ class ImportPDBOperator(bpy.types.Operator):
         # multiple trajectories
         #
         # Fit the number of global frames to this trajectory's length.
-        bpy.data.scenes[0].frame_end = len(u.trajectory)
+        bpy.data.scenes[0].frame_end = len(mda_universe.trajectory)
 
         return {'FINISHED'}
 
@@ -117,12 +114,6 @@ class ImportPDBOperator(bpy.types.Operator):
         material.diffuse_color = color
         material.use_nodes = True
 
-        # TODO: Investigate this material modification by Atomic Blender:
-        #
-        # mat_P_BSDF = next(n for n in material.node_tree.nodes
-        #                   if n.type == "BSDF_PRINCIPLED")
-        # mat_P_BSDF.inputs['Base Color'].default_value = color
-
         material.name = f"{domain_name}_material"
 
         atom_mesh = bpy.data.meshes.new(f"{domain_name}_mesh")
@@ -168,18 +159,18 @@ class ImportPDBOperator(bpy.types.Operator):
 
         atom_mesh_object.instance_type = 'VERTS'
 
-        # TODO (2024-11-14) Taken from Atomic Blender, check if it's necessary:
-
-        # Note the collection where the ball was placed into.
+        # If there is a current collection that the ball was added into, we
+        # need to unlink it:
         coll_all = representative_ball.users_collection
         if len(coll_all) > 0:
             coll_past = coll_all[0]
         else:
             coll_past = bpy.context.scene.collection
 
-        # Put the atom into the new collection 'atom' and ...
+        # Link to the target collection:
         self.collection_protein.objects.link(representative_ball)
-        # ... unlink the atom from the other collection.
+
+        # Unlink from the previous collection:
         coll_past.objects.unlink(representative_ball)
 
         return atom_mesh_object

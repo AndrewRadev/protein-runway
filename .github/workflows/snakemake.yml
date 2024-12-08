@@ -1,10 +1,9 @@
 name: Run snakemake workflow
-
 on: [push]
 
 jobs:
   run_snakemake_workflow:
-    name: Build the entire workflow with the example inputs in git
+    name: Run snakemake workflow
     runs-on: ubuntu-latest
 
     steps:
@@ -17,12 +16,28 @@ jobs:
         with:
           environment-file: micromamba_env.yml
           cache-environment: true
+          cache-environment-key: ${{ hashFiles('micromamba_env.yml') }}
           post-cleanup: 'none'
 
       - name: Install pip dependencies
         run: |
           micromamba run -n protein-runway pip install -r requirements.txt
 
+      - name: Generate image artifacts
+        run: |
+          micromamba run -n protein-runway bash scripts/generate_snakemake_graphs.sh 5vde_example
+
       - name: Run snakemake
         run: |
           micromamba run -n protein-runway snakemake
+
+      - name: Generate report
+        run: |
+          micromamba run -n protein-runway snakemake --report 04_extra/report.html
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workflow-graphs
+          path: |
+            04_extra/graphs/*.svg
+            04_extra/report.html
