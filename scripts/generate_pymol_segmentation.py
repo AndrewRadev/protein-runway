@@ -36,7 +36,7 @@ def parse_chopping(chopping, method, k):
     Method choices: 'chainsaw', 'k_geostas', 'h_geostas'
     k choices: 2-10
     """
-    methods = {'chainsaw': 'chainsaw',
+    methods = {'chainsaw': 'Chainsaw',
                'k_geostas': 'GeoStaS K-means',
                'h_geostas': 'GeoStaS Hierarchical'}
     segments = {}
@@ -70,7 +70,7 @@ def generate_pymol_script(pdb_file, segmentation, output_file):
             for j, region in enumerate(domain):
                 f.write(f"select domain_{i:02}_{j:02}, res {region[0]}-{region[1]}\n")
                 if i < 5:
-                    f.write(f"color {i + 2}, domain_{i:02}_{j:02}\n") 
+                    f.write(f"color {i + 2}, domain_{i:02}_{j:02}\n")
                     # skip color 1 because it's black on black bg
                 else:
                     f.write(f"color {i + 3}, domain_{i:02}_{j:02}\n")
