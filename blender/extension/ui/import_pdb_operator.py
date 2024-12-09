@@ -111,11 +111,16 @@ class ImportPDBOperator(bpy.types.Operator):
 
     def draw_domain(self, vertices, domain_name, color, add_convex_hull):
         material = bpy.data.materials.new(f"{domain_name}_material")
-        material.diffuse_color = color
-        material.use_nodes = True
-
         material.name = f"{domain_name}_material"
 
+        # Set material color:
+        material.diffuse_color = color
+        material.use_nodes = True
+        mat_P_BSDF = next(n for n in material.node_tree.nodes
+                          if n.type == "BSDF_PRINCIPLED")
+        mat_P_BSDF.inputs['Base Color'].default_value = color
+
+        # Initialize mesh with the coordinates:
         atom_mesh = bpy.data.meshes.new(f"{domain_name}_mesh")
         atom_mesh.from_pydata(vertices, [], [])
         atom_mesh.update()
