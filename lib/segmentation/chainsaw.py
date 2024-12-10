@@ -1,9 +1,9 @@
 """
 Chainsaw predicts domain segmentation based on a deep learning model. It uses
-the `stride` tool to determine secondary structure, and produces a TSV file
+the ``stride`` tool to determine secondary structure, and produces a TSV file
 with a description of the output.
 
-Source: <https://github.com/JudeWells/Chainsaw>
+Source: https://github.com/JudeWells/Chainsaw
 """
 
 import csv

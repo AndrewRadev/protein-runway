@@ -3,8 +3,8 @@ Merizo predicts domain segmentation based on a deep learning model. Currently,
 we're using our own fork to fix an issue with recognizing certain residue codes
 like HIP and CYX.
 
-Original source: <https://github.com/psipred/Merizo>
-Fork source:     <https://github.com/AndrewRadev/Merizo>
+* Original source: https://github.com/psipred/Merizo
+* Fork source: https://github.com/AndrewRadev/Merizo
 """
 
 import csv

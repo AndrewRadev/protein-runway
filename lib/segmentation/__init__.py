@@ -10,6 +10,10 @@ from pathlib import Path
 
 
 class ParsingError(Exception):
+    """
+    Raised when an issue was encountered during parsing the inputs. Will
+    contain as ``__cause__`` the original exception that triggered it.
+    """
     pass
 
 
@@ -32,13 +36,13 @@ class SegmentationParser:
     @abstractmethod
     def parse(self) -> Iterator[Tuple[str, int, str]]:
         """
-        The return value is a collection of items of the form:
+        The return value is a collection of items of the form::
 
             ("<method name>", <number of domains>, "<chopping>")
 
         They could be collected into a list or yield-ed. The
-        `write_segmentations` function only expects that this method returns an
-        iterable object.
+        :func:`write_segmentations` function only expects that this method
+        returns an iterable object.
         """
         raise NotImplementedError
 

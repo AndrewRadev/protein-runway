@@ -131,7 +131,6 @@ class SegmentationTest(unittest.TestCase):
         coordinates = np.zeros((atom_count, 3))
 
         trajectory = Trajectory.from_ca_frames([coordinates], topology_attr={
-            'names': ['CA'] * atom_count,
             'resids': np.arange(atom_count) + 1,
         })
 

@@ -26,6 +26,14 @@ extensions = [
     ]
 # autosummary_generate = True  # Turn on sphinx.ext.autosummary
 autoapi_dirs = ['../../lib']
+autoapi_options = [
+    'members',
+    'undoc-members',
+    'private-members',
+    'show-inheritance',
+    'special-members',
+    'imported-members',
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

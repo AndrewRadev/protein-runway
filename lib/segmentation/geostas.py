@@ -6,7 +6,7 @@ written in R, so their format is controlled by our workflow rather than by the
 external project itself.
 
 Documentation can be found at:
-<http://thegrantlab.org/bio3d/reference/geostas.html>
+http://thegrantlab.org/bio3d/reference/geostas.html
 """
 
 import json
@@ -47,8 +47,9 @@ class Parser(SegmentationParser):
     def _translate_atoms_to_residues(self, atom_data, atom_groups):
         """
         The output of GeoStaS is (alpha carbon) atom indices (1-indexed) while
-        we need residues. We need to translate the sequential atom index into
-        the residue it corresponds to by using an MDAnalysis universe.
+        the output of the parser is in residues. This method translates the
+        sequential atom indices into the residues they correspond to by using
+        an MDAnalysis universe.
         """
         return [
             [
@@ -60,8 +61,8 @@ class Parser(SegmentationParser):
 
     def _generate_chopping(self, residue_groups):
         """
-        Input: [[1, 2, 3], [10, 11, 20, 21], ...]
-        Output: 1-3,10-11_20,21,...
+        Input: ``[[1, 2, 3], [10, 11, 20, 21], ...]``
+        Output: ``1-3,10-11_20,21,...``
         """
         # Structure: { group: [(start, end), (start, end), ...] }
         groupings = {}

@@ -11,7 +11,7 @@ import numpy as np
 
 class Trajectory:
     """
-    A Trajectory object is a wrapper for the MDAnalysis Universe class. It
+    A Trajectory object is a wrapper for the MDAnalysis ``Universe`` class. It
     encapsulates some MDA-specific function calls to make it simpler to use for
     the purposes of this codebase.
 
@@ -26,6 +26,11 @@ class Trajectory:
 
     @staticmethod
     def from_paths(topology_path, trajectory_path=None):
+        """
+        Build a :class:`Trajectory` object from a topology file and a
+        trajectory file. Mirrors the MDAnalysis Universe construction method.
+        """
+
         if trajectory_path:
             mda_universe = mda.Universe(topology_path, trajectory_path)
         else:
@@ -35,6 +40,22 @@ class Trajectory:
 
     @staticmethod
     def from_ca_frames(data, topology_attr={}):
+        """
+        A shortcut to create an in-memory MDAnalysis Universe with the given
+        data as a list of coordinate matrices, each a list of triplets.
+
+        Each coordinate is considered to be an alpha carbon, so the number of
+        residues is set to the number of given atoms. Some additional
+        (optional) topology attributes you might provide:
+
+        * names: atom names that match the coordinates (default to "CA")
+        * resids: residue ids that correspond to the given atoms
+        * resnames: residue names that correspond to the given residue ids
+
+        All other topology attributes are passed along to the MDAnalysis
+        Universe method ``add_TopologyAttr``.
+        """
+
         frame_count = len(data)
         n_atoms     = len(data[0])
 
@@ -45,6 +66,9 @@ class Trajectory:
             atom_resindex=np.arange(n_atoms),
             trajectory=True,
         )
+
+        if 'names' not in topology_attr:
+            topology_attr['names'] = ['CA'] * n_atoms
 
         for key, value in topology_attr.items():
             u.add_TopologyAttr(key, value)
@@ -65,15 +89,31 @@ class Trajectory:
         return self.mda_universe.trajectory
 
     def __next__(self):
+        """
+        Delegates to MDAnalysis to shift the internal trajectory of the
+        Universe forward.
+        """
         return next(self.mda_universe.trajectory)
 
     def select_atoms(self, *args):
+        """
+        Delegates to MDAnalysis to return an AtomGroup.
+        """
         return self.mda_universe.select_atoms(*args)
 
     def write_static(self, path: Path|str, selection='all'):
+        """
+        Write the static coordinates of the current frame into the given file.
+        It's expected that it's a PDB, but anything that MDAnalysis accepts
+        will work.
+        """
         atoms = self.select_atoms(selection)
         atoms.write(str(path))
 
     def write_frames(self, path: Path|str, selection='all'):
+        """
+        Write the full trajectory to a file. It's expected that it's a PDB, but
+        anything that MDAnalysis accepts will work.
+        """
         atoms = self.select_atoms(selection)
         atoms.write(str(path), frames='all')
