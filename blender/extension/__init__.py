@@ -1,4 +1,5 @@
 import bpy
+import os
 
 from .ui.import_pdb_operator import ImportPDBOperator
 from .ui.animate_trajectory_operator import AnimateTrajectoryOperator
@@ -94,7 +95,7 @@ def update_segmentation_path(self, context):
     self.ProteinRunway_segmentation_items.clear()
 
     path = self.ProteinRunway_segmentation_path
-    if len(path) == 0:
+    if len(path) == 0 or not os.path.isfile(path):
         # The path has been removed, clear out the UI lists:
         return
 

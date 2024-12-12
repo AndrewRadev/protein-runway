@@ -8,7 +8,7 @@ from .segmentations_ui_list import (
 
 
 class ImportTrajectoryPanel(bpy.types.Panel):
-    bl_label       = "Import Trajectory"
+    bl_label       = "ProteinRunway: Import Trajectory"
     bl_idname      = "PROTEINRUNWAY_PT_import_panel"
     bl_space_type  = "PROPERTIES"
     bl_region_type = "WINDOW"

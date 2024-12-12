@@ -2,6 +2,11 @@ import csv
 import re
 from collections import defaultdict
 
+
+class ParseError(Exception):
+    pass
+
+
 def parse_segmentation_file(path):
     """
     Expected columns: 'index', 'method', 'domain_count', 'chopping'
@@ -9,14 +14,15 @@ def parse_segmentation_file(path):
     # A nested dictionary of { <method>: { <domain_count>: <chopping> } }
     segmentations = defaultdict(dict)
 
-    # TODO (2024-11-17) Handle errors
+    try:
+        with open(path) as f:
+            reader = csv.DictReader(f, delimiter='\t')
+            for row in reader:
+                segmentations[row['method']][row['domain_count']] = row['chopping']
 
-    with open(path) as f:
-        reader = csv.DictReader(f, delimiter='\t')
-        for row in reader:
-            segmentations[row['method']][row['domain_count']] = row['chopping']
-
-    return segmentations
+        return segmentations
+    except Exception as e:
+        raise ParseError(f"Couldn't parse segmentation file {path}") from e
 
 
 def generate_domain_ranges(chopping):
@@ -25,7 +31,7 @@ def generate_domain_ranges(chopping):
     for domain in chopping.split(','):
         regions = []
         for region in domain.split('_'):
-            if re.match('^\d+$', region) is None:
+            if re.match(r'^\d+$', region) is None:
                 start, end = region.split('-')
             else:
                 # Only a single domain

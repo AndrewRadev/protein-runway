@@ -60,12 +60,6 @@ class ImportPDBOperator(bpy.types.Operator):
             o.select_set(True)
         bpy.ops.protein_runway.animate_trajectory('INVOKE_DEFAULT')
 
-        # TODO (2024-11-14) This is messy and invasive, it might interfere with
-        # multiple trajectories
-        #
-        # Fit the number of global frames to this trajectory's length.
-        bpy.data.scenes[0].frame_end = len(mda_universe.trajectory)
-
         return {'FINISHED'}
 
     def draw_alpha_carbons(self, universe, domain_regions, add_convex_hull):
