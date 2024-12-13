@@ -1,7 +1,8 @@
 MDAnalysis
 
-Sphinx
-sphinx-autoapi
+# Optional: for documentation generation
+# Sphinx
+# sphinx-autoapi
 
 # For merizo:
 natsort
