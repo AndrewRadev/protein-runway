@@ -8,3 +8,7 @@ Key Features:
 - Visualize molecular trajectories.
 - Extract key movement patterns.
 - Integrate with tools like `Chainsaw`, `Merizo`, `bio3D`.
+
+.. image:: poster_2000p.jpeg
+  :width: 100%
+  :alt: Poster for presentation purposes
