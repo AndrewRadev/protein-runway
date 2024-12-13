@@ -1,6 +1,6 @@
-![Tests](https://github.com/AndrewRadev/protein-runway/actions/workflows/tests.yml/badge.svg)
-![Snakemake workflow](https://github.com/AndrewRadev/protein-runway/actions/workflows/snakemake.yml/badge.svg)
-![Blender extension](https://github.com/AndrewRadev/protein-runway/actions/workflows/blender_extension.yml/badge.svg)
+[![Tests](https://github.com/AndrewRadev/protein-runway/actions/workflows/tests.yml/badge.svg)](https://github.com/AndrewRadev/protein-runway/actions/workflows/tests.yml)
+[![Snakemake workflow](https://github.com/AndrewRadev/protein-runway/actions/workflows/snakemake.yml/badge.svg)](https://github.com/AndrewRadev/protein-runway/actions/workflows/tests.yml)
+[![Blender extension](https://github.com/AndrewRadev/protein-runway/actions/workflows/blender_extension.yml/badge.svg)](https://github.com/AndrewRadev/protein-runway/actions/workflows/tests.yml)
 
 ## Setup snakemake workflow
 
