@@ -14,3 +14,4 @@ Protein Runway is a tool for the schematic visualization of large molecules' mos
    introduction
    installation
    tutorial
+   blender_extension

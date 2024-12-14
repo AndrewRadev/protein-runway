@@ -43,6 +43,11 @@ class SegmentationParamsUiList(bpy.types.UIList):
         layout.label(text=item.domain_count, icon='OPTIONS')
 
     def filter_items(self, context, data, propname):
+        """
+        Called by blender to determine which items in the list to show and
+        which not. In our case, we only want to show domain counts that are
+        associated with the currently selected method.
+        """
         scene = context.scene
 
         active_method_index = scene.ProteinRunway_segmentation_method_index
