@@ -4,7 +4,7 @@
 
 To know more about the project:
 
-* 🖼️See our [poster](https://andrewradev.github.io/protein-runway/_images/poster_2000p.jpeg) overview
+* 🖼️ See our [poster](https://andrewradev.github.io/protein-runway/_images/poster_2000p.jpeg) overview
 * 📄 Read the paper: `[work in progress]`
 * 📚 Take a look at the documentation: <https://andrewradev.github.io/protein-runway/>
 * 📺 Watch a video demo: <https://www.youtube.com/watch?v=aGKgV2fPp-o>
