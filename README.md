@@ -2,6 +2,14 @@
 [![Snakemake workflow](https://github.com/AndrewRadev/protein-runway/actions/workflows/snakemake.yml/badge.svg)](https://github.com/AndrewRadev/protein-runway/actions/workflows/tests.yml)
 [![Blender extension](https://github.com/AndrewRadev/protein-runway/actions/workflows/blender_extension.yml/badge.svg)](https://github.com/AndrewRadev/protein-runway/actions/workflows/tests.yml)
 
+To know more about the project:
+
+* 📚 Take a look at the documentation: <https://andrewradev.github.io/protein-runway/>
+* 📺 Watch a video demo: <https://www.youtube.com/watch?v=aGKgV2fPp-o>
+* 📄 Read the paper: `[work in progress]`
+
+The rest of the README consists of installation instructions if you'd like to get it running yourself.
+
 ## Setup snakemake workflow
 
 This guide will describe how to set up an environment using micromamba, but conda or mamba are also fine. Micromamba seems to be the fastest. We'll add some specific advice for setting it up on a [VSC account](https://docs.vscentrum.be/index.html).
