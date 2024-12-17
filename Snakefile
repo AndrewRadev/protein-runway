@@ -105,9 +105,6 @@ rule build_trajectory_from_nmd:
     benchmark:
         "04_extra/benchmarks/nmd_trajectory/{protein_name}.tsv"
     run:
-        #doesn't seem like good practice to refer to variables from a previous rule,
-        #  but it also seems weird to me to now have two instantiated NormalModes objects
-        #  that aren't connected, or perhaps that doesn't matter for the snakemake logic?
         nmd_traj = NormalModes()
         nmd_traj.parse_nmd_file(input.nmd_file)
 
