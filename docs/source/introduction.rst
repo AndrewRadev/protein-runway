@@ -9,7 +9,7 @@ Key Features:
 - Extract key movement patterns.
 - Integrate with tools like `Chainsaw`, `Merizo`, `bio3D`.
 
-Read the full details in the `paper (PDF) <https://github.com/AndrewRadev/protein-runway/blob/0a31085f934c03ef1ab02e49f1604b9424262be0/docs/source/resources/paper.pdf>`_ or take a look at this illustrated overview:
+Read the full details in the `paper (PDF) <https://raw.githubusercontent.com/AndrewRadev/protein-runway/994d3d357c0a4dbf8e499ebd5a117f12340f154d/docs/source/resources/paper.pdf>`_ or take a look at this illustrated overview:
 
 .. image:: resources/poster_2000p.jpeg
   :width: 100%
